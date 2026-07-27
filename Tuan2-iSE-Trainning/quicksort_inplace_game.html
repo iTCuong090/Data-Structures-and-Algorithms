@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quicksort In-Place (Lomuto) Interactive Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: rgba(22, 30, 46, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #7f00ff;
+            --accent-pink: #ff007f;
+            --accent-gold: #ffb703;
+            --accent-green: #00e676;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(255, 183, 3, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3);
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            width: 240px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 12px rgba(255, 183, 3, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--accent-gold), #fb8500);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(255, 183, 3, 0.4);
+        }
+
+        .btn-action:hover {
+            box-shadow: 0 6px 20px rgba(255, 183, 3, 0.6);
+        }
+
+        .btn-skip {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .game-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .stage-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 16px 20px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent-cyan);
+        }
+
+        .stage-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stage-step {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-gold);
+            background: rgba(255, 183, 3, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        /* Array Track Visualizer */
+        .array-track-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px 20px;
+            align-items: center;
+            position: relative;
+        }
+
+        .pointers-row {
+            display: flex;
+            gap: 16px;
+            height: 32px;
+            align-items: center;
+        }
+
+        .array-slots {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .index-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .num-card {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            cursor: grab;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .num-card.dimmed {
+            opacity: 0.35;
+            filter: grayscale(80%);
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .num-card.pivot-card {
+            background: linear-gradient(135deg, #ffb703, #fb8500);
+            border-color: #ffe6a7;
+            color: #000;
+            box-shadow: 0 8px 24px rgba(255, 183, 3, 0.5);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .num-card.scanner-card {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
+        }
+
+        .num-card.small-ptr-card {
+            border-color: var(--accent-blue);
+        }
+
+        .pointer-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: absolute;
+            top: -28px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            white-space: nowrap;
+        }
+
+        .badge-i {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .badge-j {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .badge-pivot {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .instruction-box {
+            background: rgba(0, 242, 254, 0.05);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .instruction-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .highlight-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            color: var(--accent-cyan);
+        }
+
+        .actions-grid {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+        }
+
+        /* Console & History Panel */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .console-card {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .console-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-green);
+        }
+
+        .terminal-window {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #00e676;
+            background: #04070d;
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 180px;
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid rgba(0, 230, 118, 0.15);
+        }
+
+        .terminal-line {
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .terminal-line.merged-output {
+            color: #00f2fe;
+            font-weight: 700;
+        }
+
+        .tree-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tree-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+        }
+
+        .task-item.completed {
+            border-left-color: var(--accent-green);
+            background: rgba(0, 230, 118, 0.05);
+            color: var(--text-main);
+        }
+
+        .task-item.active {
+            border-left-color: var(--accent-gold);
+            background: rgba(255, 183, 3, 0.08);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #ef4444;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .toast.success {
+            background: #10b981;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 183, 3, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 183, 3, 0.8); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">LOM</div>
+            <div>
+                <h1>Quicksort In-Place (Lomuto) Game</h1>
+            </div>
+        </div>
+        <div class="controls">
+            <input type="text" id="arrayInput" value="1, 3, 9, 8, 2, 7, 5" placeholder="e.g. 1, 3, 9, 8, 2, 7, 5">
+            <button class="btn" onclick="startNewGame()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Reset Game
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left: Game Play Area -->
+        <div class="game-panel" id="gamePanel">
+            
+            <div class="stage-banner">
+                <div>
+                    <div class="stage-title">Active Range Subarray Partition</div>
+                    <div style="font-weight: 800; font-size: 18px; margin-top: 2px;" id="rangeLabel">Range [0 .. 6]</div>
+                </div>
+                <div class="stage-step" id="stepCounter">Step 1</div>
+            </div>
+
+            <!-- Array Slots & Cards -->
+            <div class="array-track-container">
+                <div class="array-slots" id="arraySlots">
+                    <!-- Dynamic slots rendered here -->
+                </div>
+            </div>
+
+            <!-- Action Prompt Box -->
+            <div class="instruction-box">
+                <div class="instruction-text" id="instructionText">
+                    Comparing element <span class="highlight-num" id="scannerVal">arr[j]</span> with Pivot <span class="highlight-num" id="pivotVal">5</span>...
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions-grid" id="actionsGrid">
+                <button class="btn btn-action" id="btnSwap" onclick="handleUserChoice(true)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+                    Swap arr[i] & arr[j] (i++)
+                </button>
+                <button class="btn btn-skip" id="btnSkip" onclick="handleUserChoice(false)">
+                    Keep Position (Element &gt; Pivot)
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right: Console Output & Past Steps History -->
+        <div class="side-panel">
+            
+            <div class="console-card">
+                <div class="console-header">
+                    <div class="console-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                        Output Terminal (In-Place Format)
+                    </div>
+                </div>
+                <div class="terminal-window" id="terminal">
+                    <div class="terminal-line">// Lomuto Partition Log</div>
+                </div>
+            </div>
+
+            <div class="tree-card">
+                <div class="tree-title">📜 Partition History (Past Steps)</div>
+                <div class="task-list" id="historyList">
+                    <!-- Past steps rendered here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        class Task {
+            constructor(low, high) {
+                this.low = low;
+                this.high = high;
+            }
+        }
+
+        let array = [1, 3, 9, 8, 2, 7, 5];
+        let taskQueue = [];
+        let historyList = [];
+        let currentTask = null;
+        let pivot = 0;
+        let iPtr = 0;
+        let jPtr = 0;
+        let stepCount = 1;
+        let isFinalPivotSwapPhase = false;
+
+        function startNewGame() {
+            const inputStr = document.getElementById("arrayInput").value;
+            const parsed = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+            if (parsed.length === 0) {
+                showToast("Please enter a valid array!", true);
+                return;
+            }
+
+            array = [...parsed];
+            taskQueue = [];
+            historyList = [];
+            stepCount = 1;
+            document.getElementById("terminal").innerHTML = `<div class="terminal-line">// Lomuto Partition Log</div>`;
+
+            // Enqueue root task
+            taskQueue.push(new Task(0, array.length - 1));
+            
+            advanceTask();
+            showToast("New Quicksort In-Place Game Started!", false);
+        }
+
+        function advanceTask() {
+            while (taskQueue.length > 0) {
+                let nextTask = taskQueue.shift();
+                if (nextTask.low < nextTask.high) {
+                    currentTask = nextTask;
+                    setupPartitionState();
+                    return;
+                }
+            }
+
+            // All tasks finished!
+            currentTask = null;
+            renderUI();
+            showCompletionScreen();
+        }
+
+        function setupPartitionState() {
+            pivot = array[currentTask.high];
+            iPtr = currentTask.low;
+            jPtr = currentTask.low;
+            isFinalPivotSwapPhase = false;
+            renderUI();
+        }
+
+        function renderUI() {
+            if (!currentTask) return;
+
+            document.getElementById("rangeLabel").innerText = `Range [${currentTask.low} .. ${currentTask.high}] (Pivot = ${pivot})`;
+            document.getElementById("stepCounter").innerText = `Step ${stepCount}`;
+
+            const slotsEl = document.getElementById("arraySlots");
+            slotsEl.innerHTML = "";
+
+            for (let idx = 0; idx < array.length; idx++) {
+                const wrapper = document.createElement("div");
+                wrapper.className = "slot-wrapper";
+
+                // Pointer Badges
+                if (idx === iPtr && idx === jPtr && idx === currentTask.high) {
+                    wrapper.appendChild(createBadge("i, j, PIVOT", "badge-pivot"));
+                } else if (idx === iPtr && idx === jPtr) {
+                    wrapper.appendChild(createBadge("i, j", "badge-i"));
+                } else if (idx === iPtr) {
+                    wrapper.appendChild(createBadge("i (small)", "badge-i"));
+                } else if (idx === jPtr && !isFinalPivotSwapPhase) {
+                    wrapper.appendChild(createBadge("j (scan)", "badge-j"));
+                } else if (idx === currentTask.high) {
+                    wrapper.appendChild(createBadge("PIVOT", "badge-pivot"));
+                }
+
+                // Card
+                const card = document.createElement("div");
+                card.className = "num-card";
+                card.innerText = array[idx];
+
+                const isInActiveRange = (idx >= currentTask.low && idx <= currentTask.high);
+                if (!isInActiveRange) {
+                    card.classList.add("dimmed");
+                } else if (idx === currentTask.high) {
+                    card.classList.add("pivot-card");
+                } else if (idx === jPtr && !isFinalPivotSwapPhase) {
+                    card.classList.add("scanner-card");
+                } else if (idx === iPtr) {
+                    card.classList.add("small-ptr-card");
+                }
+
+                wrapper.appendChild(card);
+
+                // Index Label
+                const idxLabel = document.createElement("div");
+                idxLabel.className = "index-label";
+                idxLabel.innerText = `[${idx}]`;
+                wrapper.appendChild(idxLabel);
+
+                slotsEl.appendChild(wrapper);
+            }
+
+            // Update Instructions & Buttons
+            const instrEl = document.getElementById("instructionText");
+            const btnSwap = document.getElementById("btnSwap");
+            const btnSkip = document.getElementById("btnSkip");
+
+            if (isFinalPivotSwapPhase) {
+                instrEl.innerHTML = `Partition Loop Finished! Final Swap: Place Pivot <span class="highlight-num">${pivot}</span> into Index <span class="highlight-num">${iPtr}</span>.`;
+                btnSwap.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Swap Pivot into Index i (${iPtr})`;
+                btnSkip.style.display = "none";
+            } else {
+                const currentScanVal = array[jPtr];
+                instrEl.innerHTML = `Scan j=[${jPtr}] (Value <span class="highlight-num">${currentScanVal}</span>) vs Pivot <span class="highlight-num">${pivot}</span>. Is <span class="highlight-num">${currentScanVal} &le; ${pivot}</span>?`;
+                btnSwap.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg> Yes: Swap arr[${iPtr}] & arr[${jPtr}] (i++)`;
+                btnSkip.innerHTML = `No: Keep Position (j++)`;
+                btnSkip.style.display = "flex";
+            }
+
+            renderHistory();
+        }
+
+        function createBadge(text, className) {
+            const badge = document.createElement("div");
+            badge.className = `pointer-badge ${className}`;
+            badge.innerText = text;
+            return badge;
+        }
+
+        function handleUserChoice(userChoseSwap) {
+            if (!currentTask) return;
+
+            if (isFinalPivotSwapPhase) {
+                // Perform final swap of arr[iPtr] and arr[currentTask.high]
+                swap(iPtr, currentTask.high);
+                
+                const pivotIndex = iPtr;
+                
+                // Log state to terminal
+                logTerminalLine(array.join(" "));
+
+                // Record history
+                historyList.push({
+                    step: stepCount++,
+                    range: `[${currentTask.low}..${currentTask.high}]`,
+                    pivot: pivot,
+                    resultArray: [...array]
+                });
+
+                // Push sub-tasks (left first, then right)
+                let leftTask = new Task(currentTask.low, pivotIndex - 1);
+                let rightTask = new Task(pivotIndex + 1, currentTask.high);
+
+                // Re-insert tasks into queue
+                taskQueue.unshift(rightTask);
+                taskQueue.unshift(leftTask);
+
+                advanceTask();
+                return;
+            }
+
+            // Normal scanning phase
+            const currentScanVal = array[jPtr];
+            const shouldSwap = (currentScanVal <= pivot);
+
+            if (userChoseSwap === shouldSwap) {
+                // Correct decision!
+                if (shouldSwap) {
+                    swap(iPtr, jPtr);
+                    iPtr++;
+                }
+                jPtr++;
+
+                if (jPtr === currentTask.high) {
+                    isFinalPivotSwapPhase = true;
+                }
+
+                renderUI();
+            } else {
+                // Incorrect decision
+                if (shouldSwap) {
+                    showToast(`Incorrect! ${currentScanVal} ≤ ${pivot}, so it SHOULD be swapped with arr[${iPtr}].`, true);
+                } else {
+                    showToast(`Incorrect! ${currentScanVal} > ${pivot}, so it should NOT be swapped. Just advance j.`, true);
+                }
+                document.getElementById("gamePanel").classList.add("shake");
+                setTimeout(() => document.getElementById("gamePanel").classList.remove("shake"), 400);
+            }
+        }
+
+        function swap(idx1, idx2) {
+            let temp = array[idx1];
+            array[idx1] = array[idx2];
+            array[idx2] = temp;
+        }
+
+        function logTerminalLine(text) {
+            const term = document.getElementById("terminal");
+            const line = document.createElement("div");
+            line.className = "terminal-line merged-output";
+            line.innerText = text;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function renderHistory() {
+            const historyEl = document.getElementById("historyList");
+            historyEl.innerHTML = "";
+
+            // Past completed steps
+            historyList.forEach(h => {
+                const item = document.createElement("div");
+                item.className = "task-item completed";
+                item.innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">✓ Step ${h.step}:</span> Partition ${h.range} (Pivot=${h.pivot})<br><span style="font-size: 11px; opacity: 0.85;">Array: ${h.resultArray.join(' ')}</span>`;
+                historyEl.appendChild(item);
+            });
+
+            // Current step
+            if (currentTask) {
+                const item = document.createElement("div");
+                item.className = "task-item active";
+                item.innerText = `▶ Current: Range [${currentTask.low}..${currentTask.high}] (Pivot=${pivot})`;
+                historyEl.appendChild(item);
+            }
+        }
+
+        function showCompletionScreen() {
+            document.getElementById("gamePanel").innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <h2 style="font-size: 32px; font-weight: 800; color: var(--accent-green); margin-bottom: 12px;">🎉 EXCELLENT JOB!</h2>
+                    <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 24px;">You have successfully completed Lomuto In-Place Quicksort step-by-step!</p>
+                    <button class="btn btn-action" style="margin: 0 auto; padding: 14px 32px; font-size: 16px;" onclick="location.reload()">Play Again</button>
+                </div>
+            `;
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function showToast(msg, isError) {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+            
+            toastMsg.innerText = msg;
+            toast.className = `toast show ${isError ? 'error' : 'success'}`;
+
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        window.onload = () => {
+            startNewGame();
+        };
+    </script>
+</body>
+</html>

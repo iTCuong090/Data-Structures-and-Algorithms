@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quicksort Interactive Drag & Drop Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: rgba(22, 30, 46, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #7f00ff;
+            --accent-pink: #ff007f;
+            --accent-gold: #ffb703;
+            --accent-green: #00e676;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(127, 0, 255, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            width: 240px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.5);
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .game-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .stage-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 16px 20px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .stage-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stage-step {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .pivot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            background: rgba(255, 183, 3, 0.05);
+            border: 1px dashed rgba(255, 183, 3, 0.3);
+            border-radius: 20px;
+        }
+
+        .pivot-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-gold);
+        }
+
+        .num-card {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            cursor: grab;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .num-card:hover {
+            transform: translateY(-4px) scale(1.05);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 24px rgba(0, 242, 254, 0.3);
+        }
+
+        .num-card.dragging {
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+
+        .num-card.pivot-card {
+            background: linear-gradient(135deg, #ffb703, #fb8500);
+            border-color: #ffe6a7;
+            color: #000;
+            box-shadow: 0 8px 24px rgba(255, 183, 3, 0.4);
+            cursor: default;
+        }
+
+        .pool-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-header {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-pool {
+            min-height: 80px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .buckets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .bucket-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .bucket-box.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            transform: scale(1.01);
+        }
+
+        .bucket-left {
+            border-color: rgba(79, 172, 254, 0.3);
+        }
+
+        .bucket-right {
+            border-color: rgba(255, 0, 127, 0.3);
+        }
+
+        .bucket-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bucket-title {
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bucket-left .bucket-title {
+            color: var(--accent-blue);
+        }
+
+        .bucket-right .bucket-title {
+            color: var(--accent-pink);
+        }
+
+        .bucket-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 80px;
+            align-content: flex-start;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        /* Side panel & Output Console */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .console-card {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .console-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-green);
+        }
+
+        .terminal-window {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #00e676;
+            background: #04070d;
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 180px;
+            max-height: 260px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid rgba(0, 230, 118, 0.15);
+        }
+
+        .terminal-line {
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .terminal-line.merged-output {
+            color: #00f2fe;
+            font-weight: 700;
+        }
+
+        .tree-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tree-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+        }
+
+        .task-item.active {
+            border-left-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .task-item.completed {
+            border-left-color: var(--accent-green);
+            background: rgba(0, 230, 118, 0.05);
+            color: var(--text-main);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #ef4444;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .toast.success {
+            background: #10b981;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">QS</div>
+            <div>
+                <h1>Quicksort Drag & Drop Game</h1>
+            </div>
+        </div>
+        <div class="controls">
+            <input type="text" id="arrayInput" value="5, 8, 1, 3, 7, 9, 2" placeholder="e.g. 5, 8, 1, 3, 7, 9, 2">
+            <button class="btn" onclick="startNewGame()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Reset Game
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left: Game Play Panel -->
+        <div class="game-panel" id="gamePanel">
+            
+            <div class="stage-banner">
+                <div>
+                    <div class="stage-title" id="stageSubTitle">Current Subarray Partitioning</div>
+                    <div style="font-weight: 800; font-size: 18px; margin-top: 2px;" id="currentArrayLabel">[ 5, 8, 1, 3, 7, 9, 2 ]</div>
+                </div>
+                <div class="stage-step" id="stepCounter">Step 1</div>
+            </div>
+
+            <!-- Pivot Section -->
+            <div class="pivot-container">
+                <div class="pivot-label">👑 Current Pivot Element</div>
+                <div class="num-card pivot-card" id="pivotCard">5</div>
+            </div>
+
+            <!-- Unsorted Remaining Pool -->
+            <div class="pool-section">
+                <div class="section-header">
+                    <span>📦 Unsorted Elements to Partition</span>
+                    <span id="poolCount" style="color: var(--accent-cyan);">6 items left</span>
+                </div>
+                <div class="card-pool" id="unsortedPool" ondragover="allowDrop(event)" ondrop="drop(event, 'pool')">
+                    <!-- Cards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Drag and Drop Buckets -->
+            <div class="buckets-grid">
+                <!-- Left Bucket (< Pivot) -->
+                <div class="bucket-box bucket-left" id="leftBucket" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, 'left')">
+                    <div class="bucket-header">
+                        <div class="bucket-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            Left Partition (&lt; Pivot)
+                        </div>
+                        <span id="leftCount" style="font-size: 12px; font-weight: 700; color: var(--accent-blue);">0</span>
+                    </div>
+                    <div class="bucket-content" id="leftContent"></div>
+                </div>
+
+                <!-- Right Bucket (>= Pivot) -->
+                <div class="bucket-box bucket-right" id="rightBucket" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, 'right')">
+                    <div class="bucket-header">
+                        <div class="bucket-title">
+                            Right Partition (&gt;= Pivot)
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </div>
+                        <span id="rightCount" style="font-size: 12px; font-weight: 700; color: var(--accent-pink);">0</span>
+                    </div>
+                    <div class="bucket-content" id="rightContent"></div>
+                </div>
+            </div>
+
+            <div class="actions-bar">
+                <button class="btn btn-success" onclick="verifyAndSubmit()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Confirm Partition & Next Step
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right: Console & Stack -->
+        <div class="side-panel">
+            
+            <div class="console-card">
+                <div class="console-header">
+                    <div class="console-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                        Output Terminal (HackerRank Format)
+                    </div>
+                </div>
+                <div class="terminal-window" id="terminal">
+                    <div class="terminal-line">// Quicksort 2 Output Log</div>
+                </div>
+            </div>
+
+            <div class="tree-card">
+                <div class="tree-title">📜 Partition History (Past Steps)</div>
+                <div class="task-list" id="taskList">
+                    <!-- History items -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        // Quicksort Task State Management
+        class Task {
+            constructor(array) {
+                this.array = [...array];
+                this.pivot = array[0];
+                this.elementsToPartition = array.slice(1);
+                this.leftExpected = this.elementsToPartition.filter(x => x < this.pivot);
+                this.rightExpected = this.elementsToPartition.filter(x => x >= this.pivot);
+                
+                this.pool = [...this.elementsToPartition];
+                this.leftUser = [];
+                this.rightUser = [];
+            }
+        }
+
+        let originalArray = [5, 8, 1, 3, 7, 9, 2];
+        let taskStack = [];
+        let historyStack = [];
+        let currentTask = null;
+        let stepIndex = 1;
+        let draggedItemVal = null;
+
+        function startNewGame() {
+            const inputStr = document.getElementById("arrayInput").value;
+            const parsed = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+            if (parsed.length === 0) {
+                showToast("Please enter a valid array of numbers!", true);
+                return;
+            }
+
+            originalArray = parsed;
+            stepIndex = 1;
+            historyStack = [];
+            document.getElementById("terminal").innerHTML = `<div class="terminal-line">// Quicksort 2 Output Log</div>`;
+            
+            // Initiate recursion tree solver stack
+            taskStack = [];
+            runQuicksortPlanner([...originalArray]);
+            
+            renderNextTask();
+            showToast("New Quicksort Game Started!", false);
+        }
+
+        // Pre-computes the order of sub-tasks needed for Quicksort 2
+        function runQuicksortPlanner(arr) {
+            let tasks = [];
+            
+            function planner(subArr) {
+                if (subArr.length <= 1) {
+                    return subArr;
+                }
+                const task = new Task(subArr);
+                tasks.push(task);
+                
+                const leftSorted = planner(task.leftExpected);
+                const rightSorted = planner(task.rightExpected);
+                
+                return [...leftSorted, task.pivot, ...rightSorted];
+            }
+            
+            planner(arr);
+            taskStack = tasks;
+        }
+
+        function renderNextTask() {
+            if (taskStack.length === 0) {
+                // Game Finished!
+                document.getElementById("gamePanel").innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <h2 style="font-size: 32px; font-weight: 800; color: var(--accent-green); margin-bottom: 12px;">🎉 CONGRATULATIONS!</h2>
+                        <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 24px;">You have successfully manually sorted the array using Quicksort!</p>
+                        <button class="btn btn-success" style="margin: 0 auto; padding: 14px 32px; font-size: 16px;" onclick="location.reload()">Play Again</button>
+                    </div>
+                `;
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+                return;
+            }
+
+            currentTask = taskStack.shift();
+            document.getElementById("stepCounter").innerText = `Step ${stepIndex++}`;
+            document.getElementById("currentArrayLabel").innerText = `[ ${currentTask.array.join(', ')} ]`;
+            document.getElementById("pivotCard").innerText = currentTask.pivot;
+
+            renderCards();
+            updateCallStackUI();
+        }
+
+        function renderCards() {
+            const poolEl = document.getElementById("unsortedPool");
+            const leftEl = document.getElementById("leftContent");
+            const rightEl = document.getElementById("rightContent");
+
+            poolEl.innerHTML = "";
+            leftEl.innerHTML = "";
+            rightEl.innerHTML = "";
+
+            currentTask.pool.forEach(val => {
+                poolEl.appendChild(createCardElement(val, 'pool'));
+            });
+
+            currentTask.leftUser.forEach(val => {
+                leftEl.appendChild(createCardElement(val, 'left'));
+            });
+
+            currentTask.rightUser.forEach(val => {
+                rightEl.appendChild(createCardElement(val, 'right'));
+            });
+
+            document.getElementById("poolCount").innerText = `${currentTask.pool.length} items left`;
+            document.getElementById("leftCount").innerText = currentTask.leftUser.length;
+            document.getElementById("rightCount").innerText = currentTask.rightUser.length;
+        }
+
+        function createCardElement(val, location) {
+            const card = document.createElement("div");
+            card.className = "num-card";
+            card.innerText = val;
+            card.draggable = true;
+
+            card.ondragstart = (e) => {
+                draggedItemVal = val;
+                card.classList.add("dragging");
+            };
+
+            card.ondragend = () => {
+                card.classList.remove("dragging");
+            };
+
+            // Mobile / Click support
+            card.onclick = () => {
+                moveCardToNextLocation(val, location);
+            };
+
+            return card;
+        }
+
+        function moveCardToNextLocation(val, currentLocation) {
+            if (currentLocation === 'pool') {
+                if (val < currentTask.pivot) {
+                    moveValue(val, 'pool', 'left');
+                } else {
+                    moveValue(val, 'pool', 'right');
+                }
+            } else {
+                moveValue(val, currentLocation, 'pool');
+            }
+            renderCards();
+        }
+
+        function moveValue(val, from, to) {
+            if (from === 'pool') currentTask.pool = currentTask.pool.filter(x => x !== val);
+            if (from === 'left') currentTask.leftUser = currentTask.leftUser.filter(x => x !== val);
+            if (from === 'right') currentTask.rightUser = currentTask.rightUser.filter(x => x !== val);
+
+            if (to === 'pool') currentTask.pool.push(val);
+            if (to === 'left') currentTask.leftUser.push(val);
+            if (to === 'right') currentTask.rightUser.push(val);
+        }
+
+        // Drag & Drop event handlers
+        function allowDrop(e) {
+            e.preventDefault();
+        }
+
+        function dragEnter(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add("drag-over");
+        }
+
+        function dragLeave(e) {
+            e.currentTarget.classList.remove("drag-over");
+        }
+
+        function drop(e, targetZone) {
+            e.preventDefault();
+            if (e.currentTarget) e.currentTarget.classList.remove("drag-over");
+            
+            if (draggedItemVal !== null) {
+                // Find where dragged item currently is
+                let currentLoc = 'pool';
+                if (currentTask.leftUser.includes(draggedItemVal)) currentLoc = 'left';
+                if (currentTask.rightUser.includes(draggedItemVal)) currentLoc = 'right';
+
+                if (currentLoc !== targetZone) {
+                    moveValue(draggedItemVal, currentLoc, targetZone);
+                    renderCards();
+                }
+                draggedItemVal = null;
+            }
+        }
+
+        function verifyAndSubmit() {
+            if (currentTask.pool.length > 0) {
+                showToast("Please drag all elements into Left or Right buckets first!", true);
+                document.getElementById("unsortedPool").classList.add("shake");
+                setTimeout(() => document.getElementById("unsortedPool").classList.remove("shake"), 400);
+                return;
+            }
+
+            // Check if leftUser matches leftExpected & rightUser matches rightExpected
+            const isLeftCorrect = arraysMatch(currentTask.leftUser, currentTask.leftExpected);
+            const isRightCorrect = arraysMatch(currentTask.rightUser, currentTask.rightExpected);
+
+            if (isLeftCorrect && isRightCorrect) {
+                showToast("Partition Correct! Moving to next step...", false);
+                
+                historyStack.push({
+                    stepNum: stepIndex - 1,
+                    array: [...currentTask.array],
+                    pivot: currentTask.pivot,
+                    left: [...currentTask.leftUser],
+                    right: [...currentTask.rightUser]
+                });
+                
+                // Print merged sub-array if applicable (simulating Quicksort 2 merge step print)
+                checkAndLogMergeOutput(currentTask);
+
+                renderNextTask();
+            } else {
+                showToast("Incorrect partition! Remember: Left < Pivot, Right >= Pivot.", true);
+                document.getElementById("gamePanel").classList.add("shake");
+                setTimeout(() => document.getElementById("gamePanel").classList.remove("shake"), 400);
+            }
+        }
+
+        function arraysMatch(arr1, arr2) {
+            if (arr1.length !== arr2.length) return false;
+            for (let i = 0; i < arr1.length; i++) {
+                if (arr1[i] !== arr2[i]) return false;
+            }
+            return true;
+        }
+
+        function checkAndLogMergeOutput(task) {
+            // Helper to get fully sorted output of a sub-array
+            function getSorted(arr) {
+                if (arr.length <= 1) return arr;
+                let p = arr[0];
+                let l = getSorted(arr.slice(1).filter(x => x < p));
+                let r = getSorted(arr.slice(1).filter(x => x >= p));
+                return [...l, p, ...r];
+            }
+
+            const sortedResult = getSorted(task.array);
+            
+            // Append line to terminal
+            const term = document.getElementById("terminal");
+            const line = document.createElement("div");
+            line.className = "terminal-line merged-output";
+            line.innerText = sortedResult.join(" ");
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function updateCallStackUI() {
+            const listEl = document.getElementById("taskList");
+            listEl.innerHTML = "";
+
+            // Render past completed steps (History)
+            historyStack.forEach(h => {
+                const item = document.createElement("div");
+                item.className = "task-item completed";
+                item.innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">✓ Step ${h.stepNum}:</span> Partition [ ${h.array.join(', ')} ] <br><span style="font-size: 11px; opacity: 0.85;">Left: [${h.left.join(',')}] | Pivot: ${h.pivot} | Right: [${h.right.join(',')}]</span>`;
+                listEl.appendChild(item);
+            });
+
+            // Render current active step only
+            if (currentTask) {
+                const activeItem = document.createElement("div");
+                activeItem.className = "task-item active";
+                activeItem.innerText = `▶ Step ${stepIndex - 1}: Partition [ ${currentTask.array.join(', ')} ] (Pivot=${currentTask.pivot})`;
+                listEl.appendChild(activeItem);
+            }
+        }
+
+        function showToast(msg, isError) {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+            
+            toastMsg.innerText = msg;
+            toast.className = `toast show ${isError ? 'error' : 'success'}`;
+
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Initialize game on load
+        window.onload = () => {
+            startNewGame();
+        };
+    </script>
+</body>
+</html>
