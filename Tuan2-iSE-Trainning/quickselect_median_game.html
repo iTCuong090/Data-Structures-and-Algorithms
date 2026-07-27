@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quicksort In-Place (Lomuto) Interactive Game</title>
+    <title>QuickSelect - Find the Median Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 10% 10%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
+                radial-gradient(at 10% 10%, rgba(0, 230, 118, 0.12) 0px, transparent 50%),
                 radial-gradient(at 90% 90%, rgba(255, 183, 3, 0.12) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
@@ -69,7 +69,7 @@
         .logo-icon {
             width: 42px;
             height: 42px;
-            background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -77,7 +77,7 @@
             font-weight: 800;
             font-size: 18px;
             color: #000;
-            box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
         }
 
         h1 {
@@ -108,8 +108,8 @@
         }
 
         input[type="text"]:focus {
-            border-color: var(--accent-gold);
-            box-shadow: 0 0 12px rgba(255, 183, 3, 0.3);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
         }
 
         .btn {
@@ -142,6 +142,13 @@
 
         .btn-action:hover {
             box-shadow: 0 6px 20px rgba(255, 183, 3, 0.6);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
         }
 
         .btn-skip {
@@ -183,7 +190,7 @@
             background: rgba(15, 23, 42, 0.6);
             padding: 16px 20px;
             border-radius: 16px;
-            border-left: 4px solid var(--accent-cyan);
+            border-left: 4px solid var(--accent-green);
         }
 
         .stage-title {
@@ -195,8 +202,8 @@
         .stage-step {
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
-            color: var(--accent-gold);
-            background: rgba(255, 183, 3, 0.1);
+            color: var(--accent-green);
+            background: rgba(0, 230, 118, 0.1);
             padding: 4px 10px;
             border-radius: 8px;
         }
@@ -209,16 +216,9 @@
             background: rgba(15, 23, 42, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 30px 20px;
+            padding: 36px 20px 24px;
             align-items: center;
             position: relative;
-        }
-
-        .pointers-row {
-            display: flex;
-            gap: 16px;
-            height: 32px;
-            align-items: center;
         }
 
         .array-slots {
@@ -256,17 +256,20 @@
             font-weight: 800;
             font-family: 'JetBrains Mono', monospace;
             color: #fff;
-            cursor: grab;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
             position: relative;
         }
 
         .num-card.dimmed {
-            opacity: 0.35;
-            filter: grayscale(80%);
+            opacity: 0.25;
+            filter: grayscale(90%);
             border-color: transparent;
-            cursor: default;
+        }
+
+        .num-card.target-slot {
+            border: 2px solid var(--accent-gold);
+            background: rgba(255, 183, 3, 0.08);
         }
 
         .num-card.pivot-card {
@@ -293,10 +296,18 @@
             border-color: var(--accent-blue);
         }
 
+        .num-card.median-found {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            border-color: #fff;
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 230, 118, 0.8);
+            transform: scale(1.15);
+        }
+
         .pointer-badge {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            padding: 3px 8px;
+            padding: 3px 7px;
             border-radius: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -306,29 +317,20 @@
             white-space: nowrap;
         }
 
-        .badge-i {
-            background: var(--accent-blue);
+        .badge-i { background: var(--accent-blue); color: #000; }
+        .badge-j { background: var(--accent-cyan); color: #000; }
+        .badge-pivot { background: var(--accent-gold); color: #000; }
+        .badge-fixed { background: #00e676; color: #000; }
+        .badge-target { 
+            background: linear-gradient(135deg, #00e676, #00b09b); 
             color: #000;
-        }
-
-        .badge-j {
-            background: var(--accent-cyan);
-            color: #000;
-        }
-
-        .badge-pivot {
-            background: var(--accent-gold);
-            color: #000;
-        }
-
-        .badge-fixed {
-            background: #00e676;
-            color: #000;
+            bottom: -28px;
+            top: auto;
         }
 
         .instruction-box {
-            background: rgba(0, 242, 254, 0.05);
-            border: 1px solid rgba(0, 242, 254, 0.2);
+            background: rgba(0, 230, 118, 0.05);
+            border: 1px solid rgba(0, 230, 118, 0.2);
             border-radius: 16px;
             padding: 16px 20px;
             display: flex;
@@ -346,13 +348,14 @@
         .highlight-num {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 800;
-            color: var(--accent-cyan);
+            color: var(--accent-green);
         }
 
         .actions-grid {
             display: flex;
             gap: 14px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         /* Console & History Panel */
@@ -412,9 +415,10 @@
             animation: fadeIn 0.3s ease;
         }
 
-        .terminal-line.merged-output {
-            color: #00f2fe;
-            font-weight: 700;
+        .terminal-line.median-found-log {
+            color: #00e676;
+            font-weight: 800;
+            font-size: 14px;
         }
 
         .tree-card {
@@ -519,13 +523,13 @@
 
     <header>
         <div class="logo-title">
-            <div class="logo-icon">LOM</div>
+            <div class="logo-icon">MED</div>
             <div>
-                <h1>Quicksort In-Place (Lomuto) Game</h1>
+                <h1>QuickSelect - Find the Median Game</h1>
             </div>
         </div>
         <div class="controls">
-            <input type="text" id="arrayInput" value="1, 3, 9, 8, 2, 7, 5" placeholder="e.g. 1, 3, 9, 8, 2, 7, 5">
+            <input type="text" id="arrayInput" value="0, 1, 2, 4, 6, 5, 3" placeholder="e.g. 0, 1, 2, 4, 6, 5, 3">
             <button class="btn" onclick="startNewGame()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                 Reset Game
@@ -534,63 +538,57 @@
     </header>
 
     <div class="main-layout">
-        <!-- Left: Game Play Area -->
+        <!-- Left: Game Area -->
         <div class="game-panel" id="gamePanel">
             
             <div class="stage-banner">
                 <div>
-                    <div class="stage-title">Active Range Subarray Partition</div>
-                    <div style="font-weight: 800; font-size: 18px; margin-top: 2px;" id="rangeLabel">Range [0 .. 6]</div>
+                    <div class="stage-title">Target Median Index k = <span id="medianTargetIdxText" style="color: var(--accent-green); font-weight: 800;">3</span> (Value at Index k after QuickSelect)</div>
+                    <div style="font-weight: 800; font-size: 18px; margin-top: 2px;" id="rangeLabel">Subarray Range [0 .. 6]</div>
                 </div>
                 <div class="stage-step" id="stepCounter">Step 1</div>
             </div>
 
-            <!-- Array Slots & Cards -->
+            <!-- Array Slots Container -->
             <div class="array-track-container">
                 <div class="array-slots" id="arraySlots">
-                    <!-- Dynamic slots rendered here -->
+                    <!-- Dynamic Slots -->
                 </div>
             </div>
 
-            <!-- Action Prompt Box -->
+            <!-- Instruction Box -->
             <div class="instruction-box">
                 <div class="instruction-text" id="instructionText">
-                    Comparing element <span class="highlight-num" id="scannerVal">arr[j]</span> with Pivot <span class="highlight-num" id="pivotVal">5</span>...
+                    Comparing element <span class="highlight-num" id="scannerVal">arr[j]</span> with Pivot <span class="highlight-num" id="pivotVal">3</span>...
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Actions Grid -->
             <div class="actions-grid" id="actionsGrid">
-                <button class="btn btn-action" id="btnSwap" onclick="handleUserChoice(true)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
-                    Swap arr[i] & arr[j] (i++)
-                </button>
-                <button class="btn btn-skip" id="btnSkip" onclick="handleUserChoice(false)">
-                    Keep Position (Element &gt; Pivot)
-                </button>
+                <!-- Action buttons rendered dynamically -->
             </div>
 
         </div>
 
-        <!-- Right: Console Output & Past Steps History -->
+        <!-- Right: Console & History Panel -->
         <div class="side-panel">
             
             <div class="console-card">
                 <div class="console-header">
                     <div class="console-title">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                        Output Terminal (In-Place Format)
+                        QuickSelect Terminal Log
                     </div>
                 </div>
                 <div class="terminal-window" id="terminal">
-                    <div class="terminal-line">// Lomuto Partition Log</div>
+                    <div class="terminal-line">// QuickSelect Step-by-Step Log</div>
                 </div>
             </div>
 
             <div class="tree-card">
-                <div class="tree-title">📜 Partition History (Past Steps)</div>
+                <div class="tree-title">📜 QuickSelect History (Past Steps)</div>
                 <div class="task-list" id="historyList">
-                    <!-- Past steps rendered here -->
+                    <!-- Past history steps -->
                 </div>
             </div>
 
@@ -603,23 +601,18 @@
     </div>
 
     <script>
-        class Task {
-            constructor(low, high) {
-                this.low = low;
-                this.high = high;
-            }
-        }
-
-        let array = [1, 3, 9, 8, 2, 7, 5];
-        let taskQueue = [];
-        let historyList = [];
-        let fixedPivotIndices = new Set();
-        let currentTask = null;
+        let array = [0, 1, 2, 4, 6, 5, 3];
+        let targetK = 3;
+        let low = 0;
+        let high = 0;
         let pivot = 0;
         let iPtr = 0;
         let jPtr = 0;
         let stepCount = 1;
-        let isFinalPivotSwapPhase = false;
+        let phase = 'scan';
+        let historyList = [];
+        let fixedPivotIndices = new Set();
+        let lastPlacedPivotIndex = -1;
 
         function startNewGame() {
             const inputStr = document.getElementById("arrayInput").value;
@@ -631,47 +624,39 @@
             }
 
             array = [...parsed];
-            taskQueue = [];
+            targetK = Math.floor(array.length / 2);
+            low = 0;
+            high = array.length - 1;
+            stepCount = 1;
             historyList = [];
             fixedPivotIndices.clear();
-            stepCount = 1;
-            document.getElementById("terminal").innerHTML = `<div class="terminal-line">// Lomuto Partition Log</div>`;
+            document.getElementById("terminal").innerHTML = `<div class="terminal-line">// QuickSelect Step-by-Step Log</div>`;
 
-            // Enqueue root task
-            taskQueue.push(new Task(0, array.length - 1));
-            
-            advanceTask();
-            showToast("New Quicksort In-Place Game Started!", false);
+            document.getElementById("medianTargetIdxText").innerText = targetK;
+
+            startPartitionPhase();
+            showToast(`Find Median Game Started! Target Index k = ${targetK}`, false);
         }
 
-        function advanceTask() {
-            while (taskQueue.length > 0) {
-                let nextTask = taskQueue.shift();
-                if (nextTask.low < nextTask.high) {
-                    currentTask = nextTask;
-                    setupPartitionState();
-                    return;
-                }
+        function startPartitionPhase() {
+            if (low >= high) {
+                // Median found at low == high!
+                phase = 'finished';
+                lastPlacedPivotIndex = low;
+                renderUI();
+                showVictoryScreen(array[low]);
+                return;
             }
 
-            // All tasks finished!
-            currentTask = null;
-            renderUI();
-            showCompletionScreen();
-        }
-
-        function setupPartitionState() {
-            pivot = array[currentTask.high];
-            iPtr = currentTask.low;
-            jPtr = currentTask.low;
-            isFinalPivotSwapPhase = false;
+            pivot = array[high];
+            iPtr = low;
+            jPtr = low;
+            phase = 'scan';
             renderUI();
         }
 
         function renderUI() {
-            if (!currentTask) return;
-
-            document.getElementById("rangeLabel").innerText = `Range [${currentTask.low} .. ${currentTask.high}] (Pivot = ${pivot})`;
+            document.getElementById("rangeLabel").innerText = `Subarray Range [${low} .. ${high}] (Pivot = ${pivot})`;
             document.getElementById("stepCounter").innerText = `Step ${stepCount}`;
 
             const slotsEl = document.getElementById("arraySlots");
@@ -686,19 +671,19 @@
                 // Pointer Badges
                 if (isFixed) {
                     wrapper.appendChild(createBadge("FIXED ✓", "badge-fixed"));
-                } else if (idx === iPtr && idx === jPtr && idx === currentTask.high) {
+                } else if (idx === iPtr && idx === jPtr && idx === high && phase === 'scan') {
                     wrapper.appendChild(createBadge("i, j, PIVOT", "badge-pivot"));
-                } else if (idx === iPtr && idx === jPtr) {
+                } else if (idx === iPtr && idx === jPtr && phase === 'scan') {
                     wrapper.appendChild(createBadge("i, j", "badge-i"));
-                } else if (idx === iPtr) {
+                } else if (idx === iPtr && phase === 'scan') {
                     wrapper.appendChild(createBadge("i (small)", "badge-i"));
-                } else if (idx === jPtr && !isFinalPivotSwapPhase) {
+                } else if (idx === jPtr && phase === 'scan') {
                     wrapper.appendChild(createBadge("j (scan)", "badge-j"));
-                } else if (idx === currentTask.high) {
+                } else if (idx === high && (phase === 'scan' || phase === 'final_swap')) {
                     wrapper.appendChild(createBadge("PIVOT", "badge-pivot"));
                 }
 
-                // Card
+                // Card Element
                 const card = document.createElement("div");
                 card.className = "num-card";
                 card.innerText = array[idx];
@@ -706,16 +691,28 @@
                 if (isFixed) {
                     card.classList.add("fixed-pivot");
                 } else {
-                    const isInActiveRange = (idx >= currentTask.low && idx <= currentTask.high);
-                    if (!isInActiveRange) {
+                    const isInRange = (idx >= low && idx <= high);
+                    if (!isInRange) {
                         card.classList.add("dimmed");
-                    } else if (idx === currentTask.high) {
+                    }
+
+                    if (idx === targetK) {
+                        card.classList.add("target-slot");
+                    }
+
+                    if (phase === 'finished' && idx === targetK) {
+                        card.classList.add("median-found");
+                    } else if (idx === high && (phase === 'scan' || phase === 'final_swap')) {
                         card.classList.add("pivot-card");
-                    } else if (idx === jPtr && !isFinalPivotSwapPhase) {
+                    } else if (idx === jPtr && phase === 'scan') {
                         card.classList.add("scanner-card");
-                    } else if (idx === iPtr) {
+                    } else if (idx === iPtr && phase === 'scan') {
                         card.classList.add("small-ptr-card");
                     }
+                }
+
+                if (idx === targetK) {
+                    wrapper.appendChild(createBadge("🎯 TARGET k", "badge-target"));
                 }
 
                 wrapper.appendChild(card);
@@ -729,23 +726,7 @@
                 slotsEl.appendChild(wrapper);
             }
 
-            // Update Instructions & Buttons
-            const instrEl = document.getElementById("instructionText");
-            const btnSwap = document.getElementById("btnSwap");
-            const btnSkip = document.getElementById("btnSkip");
-
-            if (isFinalPivotSwapPhase) {
-                instrEl.innerHTML = `Partition Loop Finished! Final Swap: Place Pivot <span class="highlight-num">${pivot}</span> into Index <span class="highlight-num">${iPtr}</span>.`;
-                btnSwap.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Swap Pivot into Index i (${iPtr})`;
-                btnSkip.style.display = "none";
-            } else {
-                const currentScanVal = array[jPtr];
-                instrEl.innerHTML = `Scan j=[${jPtr}] (Value <span class="highlight-num">${currentScanVal}</span>) vs Pivot <span class="highlight-num">${pivot}</span>. Is <span class="highlight-num">${currentScanVal} &le; ${pivot}</span>?`;
-                btnSwap.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg> Yes: Swap arr[${iPtr}] & arr[${jPtr}] (i++)`;
-                btnSkip.innerHTML = `No: Keep Position (j++)`;
-                btnSkip.style.display = "flex";
-            }
-
+            renderActions();
             renderHistory();
         }
 
@@ -756,58 +737,75 @@
             return badge;
         }
 
-        function handleUserChoice(userChoseSwap) {
-            if (!currentTask) return;
+        function renderActions() {
+            const instrEl = document.getElementById("instructionText");
+            const actionsEl = document.getElementById("actionsGrid");
+            actionsEl.innerHTML = "";
 
-            if (isFinalPivotSwapPhase) {
-                // Perform final swap of arr[iPtr] and arr[currentTask.high]
-                swap(iPtr, currentTask.high);
-                
-                const pivotIndex = iPtr;
-                fixedPivotIndices.add(pivotIndex);
-                
-                // Log state to terminal
-                logTerminalLine(array.join(" "));
+            if (phase === 'scan') {
+                const currentScanVal = array[jPtr];
+                instrEl.innerHTML = `Scan j=[${jPtr}] (Value <span class="highlight-num">${currentScanVal}</span>) vs Pivot <span class="highlight-num">${pivot}</span>. Is <span class="highlight-num">${currentScanVal} &le; ${pivot}</span>?`;
 
-                // Record history
-                historyList.push({
-                    step: stepCount++,
-                    range: `[${currentTask.low}..${currentTask.high}]`,
-                    pivot: pivot,
-                    resultArray: [...array]
-                });
+                actionsEl.innerHTML = `
+                    <button class="btn btn-action" onclick="handleScanChoice(true)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+                        Yes: Swap arr[${iPtr}] & arr[${jPtr}] (i++)
+                    </button>
+                    <button class="btn btn-skip" onclick="handleScanChoice(false)">
+                        No: Keep Position (j++)
+                    </button>
+                `;
+            } else if (phase === 'final_swap') {
+                instrEl.innerHTML = `Partition Scan Complete! Place Pivot <span class="highlight-num">${pivot}</span> into index <span class="highlight-num">${iPtr}</span>.`;
 
-                // Push sub-tasks (left first, then right)
-                let leftTask = new Task(currentTask.low, pivotIndex - 1);
-                let rightTask = new Task(pivotIndex + 1, currentTask.high);
+                actionsEl.innerHTML = `
+                    <button class="btn btn-action" onclick="handleFinalSwap()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Swap Pivot into Index i (${iPtr})
+                    </button>
+                `;
+            } else if (phase === 'select_decision') {
+                instrEl.innerHTML = `Pivot <span class="highlight-num">${pivot}</span> is placed at index <span class="highlight-num">${lastPlacedPivotIndex}</span>. Target Median index is <span class="highlight-num">k=${targetK}</span>. What should QuickSelect do next?`;
 
-                // Re-insert tasks into queue
-                taskQueue.unshift(rightTask);
-                taskQueue.unshift(leftTask);
-
-                advanceTask();
-                return;
+                if (lastPlacedPivotIndex === targetK) {
+                    actionsEl.innerHTML = `
+                        <button class="btn btn-green" onclick="handleDecision('found')">
+                            🎯 Index p == k (${targetK})! Found Median = ${array[targetK]}!
+                        </button>
+                    `;
+                } else if (lastPlacedPivotIndex > targetK) {
+                    actionsEl.innerHTML = `
+                        <button class="btn btn-action" onclick="handleDecision('left')">
+                            ⬅️ Index p (${lastPlacedPivotIndex}) &gt; k (${targetK}): Recurse Left [${low} .. ${lastPlacedPivotIndex - 1}]
+                        </button>
+                    `;
+                } else {
+                    actionsEl.innerHTML = `
+                        <button class="btn btn-action" onclick="handleDecision('right')">
+                            ➡️ Index p (${lastPlacedPivotIndex}) &lt; k (${targetK}): Recurse Right [${lastPlacedPivotIndex + 1} .. ${high}]
+                        </button>
+                    `;
+                }
             }
+        }
 
-            // Normal scanning phase
+        function handleScanChoice(userChoseSwap) {
             const currentScanVal = array[jPtr];
             const shouldSwap = (currentScanVal <= pivot);
 
             if (userChoseSwap === shouldSwap) {
-                // Correct decision!
                 if (shouldSwap) {
                     swap(iPtr, jPtr);
                     iPtr++;
                 }
                 jPtr++;
 
-                if (jPtr === currentTask.high) {
-                    isFinalPivotSwapPhase = true;
+                if (jPtr === high) {
+                    phase = 'final_swap';
                 }
 
                 renderUI();
             } else {
-                // Incorrect decision
                 if (shouldSwap) {
                     showToast(`Incorrect! ${currentScanVal} ≤ ${pivot}, so it SHOULD be swapped with arr[${iPtr}].`, true);
                 } else {
@@ -815,6 +813,43 @@
                 }
                 document.getElementById("gamePanel").classList.add("shake");
                 setTimeout(() => document.getElementById("gamePanel").classList.remove("shake"), 400);
+            }
+        }
+
+        function handleFinalSwap() {
+            swap(iPtr, high);
+            lastPlacedPivotIndex = iPtr;
+            fixedPivotIndices.add(lastPlacedPivotIndex);
+            phase = 'select_decision';
+
+            logTerminalLine(`Partition result: [ ${array.join(" ")} ] (Pivot ${pivot} @ index ${lastPlacedPivotIndex})`);
+
+            historyList.push({
+                step: stepCount++,
+                range: `[${low}..${high}]`,
+                pivot: pivot,
+                pivotIdx: lastPlacedPivotIndex,
+                arrayState: [...array]
+            });
+
+            renderUI();
+        }
+
+        function handleDecision(userDecision) {
+            if (lastPlacedPivotIndex === targetK && userDecision === 'found') {
+                phase = 'finished';
+                renderUI();
+                showVictoryScreen(array[targetK]);
+            } else if (lastPlacedPivotIndex > targetK && userDecision === 'left') {
+                high = lastPlacedPivotIndex - 1;
+                logTerminalLine(`--> Recursing LEFT to range [${low} .. ${high}] (discarding right side)`);
+                startPartitionPhase();
+            } else if (lastPlacedPivotIndex < targetK && userDecision === 'right') {
+                low = lastPlacedPivotIndex + 1;
+                logTerminalLine(`--> Recursing RIGHT to range [${low} .. ${high}] (discarding left side)`);
+                startPartitionPhase();
+            } else {
+                showToast("Incorrect QuickSelect direction! Compare pivot index p with target k.", true);
             }
         }
 
@@ -827,7 +862,7 @@
         function logTerminalLine(text) {
             const term = document.getElementById("terminal");
             const line = document.createElement("div");
-            line.className = "terminal-line merged-output";
+            line.className = "terminal-line";
             line.innerText = text;
             term.appendChild(line);
             term.scrollTop = term.scrollHeight;
@@ -837,34 +872,35 @@
             const historyEl = document.getElementById("historyList");
             historyEl.innerHTML = "";
 
-            // Past completed steps
             historyList.forEach(h => {
                 const item = document.createElement("div");
                 item.className = "task-item completed";
-                item.innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">✓ Step ${h.step}:</span> Partition ${h.range} (Pivot=${h.pivot})<br><span style="font-size: 11px; opacity: 0.85;">Array: ${h.resultArray.join(' ')}</span>`;
+                item.innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">✓ Step ${h.step}:</span> Partition ${h.range} -> Pivot=${h.pivot} at index ${h.pivotIdx}<br><span style="font-size: 11px; opacity: 0.85;">Array: ${h.arrayState.join(' ')}</span>`;
                 historyEl.appendChild(item);
             });
 
-            // Current step
-            if (currentTask) {
+            if (phase !== 'finished') {
                 const item = document.createElement("div");
                 item.className = "task-item active";
-                item.innerText = `▶ Current: Range [${currentTask.low}..${currentTask.high}] (Pivot=${pivot})`;
+                item.innerText = `▶ Step ${stepCount}: Range [${low}..${high}] (Target k=${targetK})`;
                 historyEl.appendChild(item);
             }
         }
 
-        function showCompletionScreen() {
+        function showVictoryScreen(medianVal) {
+            logTerminalLine(`🎉 MEDIAN FOUND = ${medianVal} at index ${targetK}!`);
+
             document.getElementById("gamePanel").innerHTML = `
                 <div style="text-align: center; padding: 60px 20px;">
-                    <h2 style="font-size: 32px; font-weight: 800; color: var(--accent-green); margin-bottom: 12px;">🎉 EXCELLENT JOB!</h2>
-                    <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 24px;">You have successfully completed Lomuto In-Place Quicksort step-by-step!</p>
-                    <button class="btn btn-action" style="margin: 0 auto; padding: 14px 32px; font-size: 16px;" onclick="location.reload()">Play Again</button>
+                    <div style="font-size: 64px; margin-bottom: 8px;">🎯</div>
+                    <h2 style="font-size: 32px; font-weight: 800; color: var(--accent-green); margin-bottom: 12px;">MEDIAN FOUND: ${medianVal}!</h2>
+                    <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 24px;">QuickSelect found the median at index k=${targetK} in O(N) average time!</p>
+                    <button class="btn btn-green" style="margin: 0 auto; padding: 14px 32px; font-size: 16px;" onclick="location.reload()">Play Again</button>
                 </div>
             `;
             confetti({
-                particleCount: 120,
-                spread: 80,
+                particleCount: 150,
+                spread: 90,
                 origin: { y: 0.6 }
             });
         }
