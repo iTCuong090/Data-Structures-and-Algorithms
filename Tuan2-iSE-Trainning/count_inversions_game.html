@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counting Inversions - The Merge Trick Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: rgba(22, 30, 46, 0.8);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #7f00ff;
+            --accent-pink: #ff007f;
+            --accent-gold: #ffb703;
+            --accent-green: #00e676;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(255, 0, 127, 0.12) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(0, 242, 254, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-gold));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            width: 240px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 127, 0.5);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--accent-gold), #fb8500);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(255, 183, 3, 0.4);
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .game-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Intuition Explanation Box */
+        .intuition-banner {
+            background: rgba(255, 183, 3, 0.08);
+            border: 1px solid rgba(255, 183, 3, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .intuition-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .intuition-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+
+        .formula-badge {
+            display: inline-block;
+            background: rgba(0, 230, 118, 0.15);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Parallel Arrays Container */
+        .parallel-arrays-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .parallel-row {
+            background: rgba(15, 23, 42, 0.7);
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 90px;
+            position: relative;
+        }
+
+        .row-left-theme {
+            border-color: rgba(79, 172, 254, 0.3);
+            background: rgba(79, 172, 254, 0.04);
+        }
+
+        .row-right-theme {
+            border-color: rgba(255, 0, 127, 0.3);
+            background: rgba(255, 0, 127, 0.04);
+        }
+
+        .row-label {
+            font-size: 13px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 140px;
+            flex-shrink: 0;
+        }
+
+        .row-left-theme .row-label { color: var(--accent-blue); }
+        .row-right-theme .row-label { color: var(--accent-pink); }
+
+        .cards-flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex-grow: 1;
+            align-items: center;
+        }
+
+        .num-card {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .num-card.front-card {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 16px rgba(255, 183, 3, 0.5);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .num-card.inversion-highlight {
+            background: linear-gradient(135deg, #ff007f, #7f00ff) !important;
+            border-color: #ff007f !important;
+            color: #fff !important;
+            box-shadow: 0 0 24px rgba(255, 0, 127, 0.8) !important;
+            transform: scale(1.1);
+        }
+
+        /* Result Row Drop Target */
+        .result-row-box {
+            background: rgba(0, 230, 118, 0.05);
+            border: 2px dashed rgba(0, 230, 118, 0.3);
+            border-radius: 20px;
+            padding: 20px 24px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        /* Right Panel & Total Counter */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.15), rgba(127, 0, 255, 0.15));
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .score-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-pink);
+        }
+
+        .score-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 48px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
+        }
+
+        .pairs-list-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pairs-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .pairs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .pair-chip {
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            color: var(--accent-pink);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 10px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .console-card {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .terminal-window {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #00e676;
+            background: #04070d;
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 140px;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid rgba(0, 230, 118, 0.15);
+        }
+
+        .terminal-line {
+            line-height: 1.5;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        .toast.success {
+            background: #10b981;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 183, 3, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 183, 3, 0.8); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">💡</div>
+            <div>
+                <h1>Trick Lỏ Đếm Số Nghịch Đảo (Merge & Count)</h1>
+            </div>
+        </div>
+        <div class="controls">
+            <input type="text" id="arrayInput" value="2, 4, 1, 3, 5" placeholder="e.g. 2, 4, 1, 3, 5">
+            <button class="btn" onclick="startNewGame()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Reset Game
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left: Game Area -->
+        <div class="game-panel" id="gamePanel">
+            
+            <!-- Intuition Banner -->
+            <div class="intuition-banner">
+                <div class="intuition-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Bí kíp "Trick Lỏ" Đếm Cặp Nghịch Đảo trong 1 nốt nhạc!
+                </div>
+                <div class="intuition-desc" id="intuitionText">
+                    Vì mảng Trái <b>đã được sắp xếp sẵn</b>, nếu phát hiện phần tử ở mảng Phải <span style="color: var(--accent-pink); font-weight: 800;" id="rightValText">Right[j]</span> 
+                    nhỏ hơn phần tử <span style="color: var(--accent-blue); font-weight: 800;" id="leftValText">Left[i]</span>, 
+                    thì <span style="color: var(--accent-pink); font-weight: 800;">Right[j]</span> cũng <b>CHẮC CHẮN nhỏ hơn TẤT CẢ các số đứng đằng sau i</b> trong mảng Trái! <br>
+                    👉 Công thức đếm ngay: <span class="formula-badge">cnt += (left.size() - i)</span>
+                </div>
+            </div>
+
+            <!-- Step Banner -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15,23,42,0.6); padding: 14px 20px; border-radius: 16px;">
+                <div style="font-weight: 800; font-size: 16px;" id="currentMergeLabel">Step 1: Merging Subarrays</div>
+                <div style="font-family: 'JetBrains Mono'; font-size: 13px; color: var(--accent-pink);" id="stepCountBadge">Step 1</div>
+            </div>
+
+            <!-- Parallel Array Rows -->
+            <div class="parallel-arrays-container">
+                <!-- Top Row (Left Subarray) -->
+                <div class="parallel-row row-left-theme">
+                    <div class="row-label">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Mảng Trái (Left)
+                    </div>
+                    <div class="cards-flex" id="leftCardsFlex"></div>
+                </div>
+
+                <!-- Bottom Row (Right Subarray) -->
+                <div class="parallel-row row-right-theme">
+                    <div class="row-label">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        Mảng Phải (Right)
+                    </div>
+                    <div class="cards-flex" id="rightCardsFlex"></div>
+                </div>
+            </div>
+
+            <!-- Result Row Drop Zone -->
+            <div class="result-row-box">
+                <div class="result-header">
+                    <span>🎯 Merged Array Result (Click hoặc Kéo thả phần tử nhỏ hơn vào đây)</span>
+                    <span id="resultCount">0 items</span>
+                </div>
+                <div class="cards-flex" id="resultCardsFlex"></div>
+            </div>
+
+        </div>
+
+        <!-- Right: Counter & Inversion Pairs List -->
+        <div class="side-panel">
+            
+            <!-- Inversion Counter Card -->
+            <div class="score-card">
+                <div class="score-title">🔥 Tổng Số Cặp Nghịch Đảo (Inversions)</div>
+                <div class="score-number" id="inversionScore">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Mỗi cặp nghịch đảo là 1 cặp (a[i] > a[j] với i < j)</div>
+            </div>
+
+            <!-- Discovered Inversion Pairs -->
+            <div class="pairs-list-card">
+                <div class="pairs-title">⚡ Các Cặp Nghịch Đảo Đã Phát Hiện:</div>
+                <div class="pairs-container" id="pairsContainer">
+                    <!-- Pairs chips rendered here -->
+                </div>
+            </div>
+
+            <!-- Log Terminal -->
+            <div class="console-card">
+                <div style="font-size: 13px; font-weight: 700; color: var(--accent-green); display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    Terminal Execution Log
+                </div>
+                <div class="terminal-window" id="terminal">
+                    <div class="terminal-line">// Merge & Count Log</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        class MergeTask {
+            constructor(leftArr, rightArr) {
+                this.leftArr = [...leftArr];
+                this.rightArr = [...rightArr];
+                this.leftUser = [...leftArr];
+                this.rightUser = [...rightArr];
+                this.resultUser = [];
+            }
+        }
+
+        let originalArray = [2, 4, 1, 3, 5];
+        let mergeQueue = [];
+        let totalInversions = 0;
+        let foundPairs = [];
+        let currentTask = null;
+        let stepCount = 1;
+
+        function startNewGame() {
+            const inputStr = document.getElementById("arrayInput").value;
+            const parsed = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+            if (parsed.length === 0) {
+                showToast("Vui lòng nhập mảng hợp lệ!", true);
+                return;
+            }
+
+            originalArray = parsed;
+            mergeQueue = [];
+            totalInversions = 0;
+            foundPairs = [];
+            stepCount = 1;
+            document.getElementById("inversionScore").innerText = "0";
+            document.getElementById("pairsContainer").innerHTML = "";
+            document.getElementById("terminal").innerHTML = `<div class="terminal-line">// Merge & Count Log</div>`;
+
+            // Post-order plan merges
+            function planMerges(subArr) {
+                if (subArr.length <= 1) return subArr;
+
+                let mid = Math.floor(subArr.length / 2);
+                let lSorted = planMerges(subArr.slice(0, mid));
+                let rSorted = planMerges(subArr.slice(mid));
+
+                mergeQueue.push(new MergeTask(lSorted, rSorted));
+
+                let res = [];
+                let i = 0, j = 0;
+                while (i < lSorted.length && j < rSorted.length) {
+                    if (lSorted[i] <= rSorted[j]) res.push(lSorted[i++]);
+                    else res.push(rSorted[j++]);
+                }
+                while (i < lSorted.length) res.push(lSorted[i++]);
+                while (j < rSorted.length) res.push(rSorted[j++]);
+                return res;
+            }
+
+            planMerges([...originalArray]);
+
+            advanceTask();
+            showToast("Bắt đầu trò chơi Đếm Nghịch Đảo!", false);
+        }
+
+        function advanceTask() {
+            if (mergeQueue.length === 0) {
+                currentTask = null;
+                showCompletionScreen();
+                return;
+            }
+
+            currentTask = mergeQueue.shift();
+            renderUI();
+        }
+
+        function renderUI() {
+            if (!currentTask) return;
+
+            document.getElementById("currentMergeLabel").innerText = `Step ${stepCount}: Merging [${currentTask.leftArr.join(',')}] & [${currentTask.rightArr.join(',')}]`;
+            document.getElementById("stepCountBadge").innerText = `Step ${stepCount}`;
+
+            const leftFlex = document.getElementById("leftCardsFlex");
+            const rightFlex = document.getElementById("rightCardsFlex");
+            const resultFlex = document.getElementById("resultCardsFlex");
+
+            leftFlex.innerHTML = "";
+            rightFlex.innerHTML = "";
+            resultFlex.innerHTML = "";
+
+            const leftFront = currentTask.leftUser.length > 0 ? currentTask.leftUser[0] : null;
+            const rightFront = currentTask.rightUser.length > 0 ? currentTask.rightUser[0] : null;
+
+            // Highlight Inversion Trick logic
+            let isRightSmaller = (leftFront !== null && rightFront !== null && rightFront < leftFront);
+
+            // Render Left Row
+            currentTask.leftUser.forEach((val, idx) => {
+                const card = document.createElement("div");
+                card.className = "num-card";
+                card.innerText = val;
+                if (idx === 0) card.classList.add("front-card");
+
+                if (isRightSmaller) {
+                    // Highlight ALL elements in Left from i (index 0) to end!
+                    card.classList.add("inversion-highlight");
+                }
+
+                card.onclick = () => handleChoice(val, 'left');
+                leftFlex.appendChild(card);
+            });
+
+            // Render Right Row
+            currentTask.rightUser.forEach((val, idx) => {
+                const card = document.createElement("div");
+                card.className = "num-card";
+                card.innerText = val;
+                if (idx === 0) card.classList.add("front-card");
+
+                if (isRightSmaller && idx === 0) {
+                    card.classList.add("inversion-highlight");
+                }
+
+                card.onclick = () => handleChoice(val, 'right');
+                rightFlex.appendChild(card);
+            });
+
+            // Render Result Row
+            currentTask.resultUser.forEach(val => {
+                const card = document.createElement("div");
+                card.className = "num-card";
+                card.innerText = val;
+                resultFlex.appendChild(card);
+            });
+
+            document.getElementById("resultCount").innerText = `${currentTask.resultUser.length} items`;
+
+            // Update Intuition Banner text dynamically
+            const bannerText = document.getElementById("intuitionText");
+            if (leftFront !== null && rightFront !== null) {
+                if (rightFront < leftFront) {
+                    const gained = currentTask.leftUser.length;
+                    bannerText.innerHTML = `
+                        🔥 <b>PHÁT HIỆN NGHỊCH ĐẢO!</b> Phần tử Phải <span style="color: var(--accent-pink); font-weight: 800;">${rightFront}</span> 
+                        nhỏ hơn Trái <span style="color: var(--accent-blue); font-weight: 800;">${leftFront}</span>. <br>
+                        Vì mảng Trái đang chứa <b>${gained} phần tử</b> [${currentTask.leftUser.join(', ')}], 
+                        nên <span style="color: var(--accent-pink); font-weight: 800;">${rightFront}</span> tự động tạo ra ngay 
+                        <span class="formula-badge">+${gained} cặp nghịch đảo</span>!
+                    `;
+                } else {
+                    bannerText.innerHTML = `
+                        So sánh: Trái <span style="color: var(--accent-blue); font-weight: 800;">${leftFront}</span> &le; Phải <span style="color: var(--accent-pink); font-weight: 800;">${rightFront}</span>. 
+                        Đúng thứ tự tăng dần! Không tạo ra cặp nghịch đảo nào (+0). Lấy <span style="color: var(--accent-blue); font-weight: 800;">${leftFront}</span> đưa xuống Result.
+                    `;
+                }
+            } else {
+                bannerText.innerHTML = `Một trong hai mảng đã hết phần tử. Tiếp tục đưa nốt các phần tử còn lại xuống Result (+0 nghịch đảo).`;
+            }
+        }
+
+        function handleChoice(val, sourceRow) {
+            if (!currentTask) return;
+
+            const leftFront = currentTask.leftUser.length > 0 ? currentTask.leftUser[0] : null;
+            const rightFront = currentTask.rightUser.length > 0 ? currentTask.rightUser[0] : null;
+
+            if (sourceRow === 'left' && val !== leftFront) {
+                showToast("Bạn chỉ được chọn phần tử ở ĐỈNH mảng Trái!", true);
+                return;
+            }
+            if (sourceRow === 'right' && val !== rightFront) {
+                showToast("Bạn chỉ được chọn phần tử ở ĐỈNH mảng Phải!", true);
+                return;
+            }
+
+            let isCorrect = false;
+            if (leftFront !== null && rightFront !== null) {
+                if (sourceRow === 'left' && leftFront <= rightFront) isCorrect = true;
+                if (sourceRow === 'right' && rightFront < leftFront) isCorrect = true;
+            } else if (leftFront !== null && sourceRow === 'left') {
+                isCorrect = true;
+            } else if (rightFront !== null && sourceRow === 'right') {
+                isCorrect = true;
+            }
+
+            if (isCorrect) {
+                if (sourceRow === 'right' && leftFront !== null && rightFront < leftFront) {
+                    // TRICK LỎ: Add (left.size() - i) inversions at once!
+                    const addedCount = currentTask.leftUser.length;
+                    totalInversions += addedCount;
+
+                    // Push discovered pair chips for display
+                    currentTask.leftUser.forEach(lVal => {
+                        foundPairs.push(`(${lVal}, ${rightFront})`);
+                    });
+
+                    updateScoreUI();
+                    logTerminalLine(`⚡ Right element ${rightFront} < Left element ${leftFront} -> Added +${addedCount} inversions!`);
+                    showToast(`🔥 NGHỊCH ĐẢO! Đã cộng liền +${addedCount} cặp nghịch đảo!`, false);
+                }
+
+                if (sourceRow === 'left') {
+                    currentTask.leftUser.shift();
+                } else {
+                    currentTask.rightUser.shift();
+                }
+                currentTask.resultUser.push(val);
+
+                if (currentTask.leftUser.length === 0 && currentTask.rightUser.length === 0) {
+                    logTerminalLine(`✓ Merged result: [ ${currentTask.resultUser.join(' ')} ]`);
+                    stepCount++;
+                    renderUI();
+
+                    setTimeout(() => {
+                        advanceTask();
+                    }, 500);
+                } else {
+                    renderUI();
+                }
+            } else {
+                showToast(`Chưa chính xác! So sánh 2 đỉnh: ${leftFront} vs ${rightFront}. Phải chọn số bé hơn!`, true);
+                document.getElementById("gamePanel").classList.add("shake");
+                setTimeout(() => document.getElementById("gamePanel").classList.remove("shake"), 400);
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById("inversionScore").innerText = totalInversions;
+
+            const container = document.getElementById("pairsContainer");
+            container.innerHTML = "";
+            foundPairs.forEach(p => {
+                const chip = document.createElement("div");
+                chip.className = "pair-chip";
+                chip.innerText = p;
+                container.appendChild(chip);
+            });
+        }
+
+        function logTerminalLine(text) {
+            const term = document.getElementById("terminal");
+            const line = document.createElement("div");
+            line.className = "terminal-line";
+            line.innerText = text;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function showCompletionScreen() {
+            document.getElementById("gamePanel").innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 8px;">🎉</div>
+                    <h2 style="font-size: 32px; font-weight: 800; color: var(--accent-green); margin-bottom: 12px;">ĐÃ ĐẾM XONG TOÀN BỘ NGHỊCH ĐẢO!</h2>
+                    <div style="font-size: 24px; font-weight: 800; color: var(--accent-pink); margin-bottom: 16px;">TỔNG CỘNG: ${totalInversions} CẶP NGHỊCH ĐẢO</div>
+                    <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 24px;">Mảng sau khi Merge Sort hoàn tất: [ ${originalArray.slice().sort((a,b)=>a-b).join(', ')} ]</p>
+                    <button class="btn" style="margin: 0 auto; padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #00b09b, #96c93d);" onclick="location.reload()">Chơi Lại Bài Khác</button>
+                </div>
+            `;
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function showToast(msg, isError) {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+            
+            toastMsg.innerText = msg;
+            toast.className = `toast show ${isError ? 'error' : 'success'}`;
+
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        window.onload = () => {
+            startNewGame();
+        };
+    </script>
+</body>
+</html>
