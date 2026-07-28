@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Node Deletion Interactive Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #38ef7d;
+            --accent-purple: #8a2be2;
+            --accent-rose: #ff2a6d;
+            --accent-gold: #ffb703;
+            --accent-green: #05df72;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(0, 242, 254, 0.1) 0px, transparent 45%),
+                radial-gradient(at 85% 85%, rgba(138, 43, 226, 0.12) 0px, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 24px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1280px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #00f2fe, #8a2be2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            box-shadow: 0 4px 18px rgba(0, 242, 254, 0.35);
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-badge span.val {
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .preset-btn, .btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preset-btn:hover, .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(138, 43, 226, 0.2));
+            border-color: var(--accent-cyan);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 480px;
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            min-height: 480px;
+        }
+
+        .tree-edge {
+            stroke: rgba(255, 255, 255, 0.18);
+            stroke-width: 2.5px;
+            transition: all 0.4s ease;
+        }
+
+        .tree-edge.active {
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+        }
+
+        .tree-edge.successor {
+            stroke: var(--accent-gold);
+            stroke-width: 3.5px;
+            stroke-dasharray: 6 4;
+            animation: dash 1.5s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -20; }
+        }
+
+        .tree-node {
+            cursor: pointer;
+        }
+
+        .tree-node:hover circle {
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+            fill: #1e2942;
+        }
+
+        .tree-node circle {
+            fill: #1e293b;
+            stroke: #475569;
+            stroke-width: 2.5px;
+            transition: fill 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+        }
+
+        .tree-node text {
+            fill: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .tree-node.target circle {
+            fill: rgba(255, 42, 109, 0.25);
+            stroke: var(--accent-rose);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node.successor circle {
+            fill: rgba(255, 183, 3, 0.25);
+            stroke: var(--accent-gold);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node.highlight circle {
+            fill: rgba(0, 242, 254, 0.25);
+            stroke: var(--accent-cyan);
+            stroke-width: 3px;
+        }
+
+        /* Sidebar Panels */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .case-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .case-box:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .case-box.selected {
+            border-color: var(--accent-cyan);
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(138, 43, 226, 0.1));
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .case-title {
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .case-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .guide-banner {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(56, 239, 125, 0.15));
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .guide-banner strong {
+            color: var(--accent-cyan);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #0072ff);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.45);
+        }
+
+        .btn-rose {
+            background: linear-gradient(135deg, var(--accent-rose), #e11d48);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 42, 109, 0.3);
+        }
+
+        .btn-rose:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 42, 109, 0.45);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent-gold), #d97706);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 183, 3, 0.45);
+        }
+
+        .btn:disabled, .action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .legend-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .custom-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .custom-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            flex: 1;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .step-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(10, 15, 26, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #a7f3d0;
+            line-height: 1.5;
+        }
+
+        .step-log-item {
+            margin-bottom: 4px;
+        }
+
+        .step-log-item span.time {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">BST</div>
+            <div>
+                <h1>BST Node Deletion Interactive Game</h1>
+                <div class="subtitle">Trò chơi tương tác học thuật toán Xóa Nút trên Cây Nhị Phân Tìm Kiếm</div>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-badge">
+                <span>Điểm:</span>
+                <span class="val" id="score-val">0</span>
+            </div>
+            <div class="stat-badge">
+                <span>Chuỗi đúng:</span>
+                <span class="val" id="streak-val">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main Interactive Canvas -->
+        <div class="card">
+            <div class="preset-bar">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Kịch bản:</span>
+                <button class="preset-btn active" onclick="loadPreset(0)">1. LeetCode 450 (Default)</button>
+                <button class="preset-btn" onclick="loadPreset(1)">2. Xóa Gốc (Root - 2 con)</button>
+                <button class="preset-btn" onclick="loadPreset(2)">3. Xóa Nút 1 Con</button>
+                <button class="preset-btn" onclick="loadPreset(3)">4. Xóa Nút Lá</button>
+                <button class="preset-btn" onclick="loadPreset(4)">5. Cây Lệch (Degenerate)</button>
+                <button class="preset-btn" onclick="loadPreset(5)">🎲 Ngẫu nhiên</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <svg id="tree-svg"></svg>
+            </div>
+
+            <div class="legend-bar">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #1e293b; border: 2px solid #475569;"></div>
+                    <span>Bình thường</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: rgba(255, 42, 109, 0.4); border: 2px solid var(--accent-rose);"></div>
+                    <span>Nút cần xóa (Target)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: rgba(255, 183, 3, 0.4); border: 2px solid var(--accent-gold);"></div>
+                    <span>In-Order Successor</span>
+                </div>
+                <div style="margin-left: auto; display: flex; gap: 8px;">
+                    <button class="btn" onclick="undoStep()">↩ Undo</button>
+                    <button class="btn" onclick="resetTree()">🔄 Reset Cây</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Control & Quiz Panel -->
+        <div class="sidebar">
+            <div class="card">
+                <div class="panel-title">🎯 Hướng Dẫn & Thao Tác</div>
+                
+                <div class="guide-banner" id="guide-box">
+                    Nhấp vào một <strong>Nút bất kỳ trên cây</strong> mà bạn muốn xóa để bắt đầu!
+                </div>
+
+                <div id="case-selection-panel" style="display: none;">
+                    <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--accent-cyan);">
+                        Bước 1: Hãy chọn Trường Hợp (Case) cho Nút <span id="target-node-val" style="color: var(--accent-rose); font-family: 'JetBrains Mono';">?</span>:
+                    </div>
+
+                    <div class="case-box" id="case1-btn" onclick="selectCase(1)">
+                        <div class="case-title">🍃 Case 1: Nút Lá (0 con)</div>
+                        <div class="case-desc">Nút không có nút con nào. Xóa trực tiếp khỏi cây.</div>
+                    </div>
+
+                    <div class="case-box" id="case2-btn" onclick="selectCase(2)">
+                        <div class="case-title">🌿 Case 2: Có 1 Nút Con</div>
+                        <div class="case-desc">Thay thế nút hiện tại bằng nút con duy nhất của nó.</div>
+                    </div>
+
+                    <div class="case-box" id="case3-btn" onclick="selectCase(3)">
+                        <div class="case-title">🌳 Case 3: Có 2 Nút Con</div>
+                        <div class="case-desc">Tìm Nút thế mạng (In-Order Successor), tráo giá trị và xóa nút thế mạng.</div>
+                    </div>
+                </div>
+
+                <div id="action-panel" style="margin-top: 12px; display: none;">
+                    <button class="action-btn btn-rose" id="execute-btn" onclick="executeStep()">
+                        ✨ Thực hiện Xóa Nút
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Tree Generator -->
+            <div class="card">
+                <div class="panel-title">⚙️ Tự Nhập Cây</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
+                    Nhập mảng danh sách số (cách nhau bởi dấu cách):
+                </div>
+                <div class="custom-input-group">
+                    <input type="text" class="custom-input" id="custom-tree-input" value="5 3 6 2 4 7">
+                    <button class="btn" onclick="buildCustomTree()">Tạo Cây</button>
+                </div>
+            </div>
+
+            <!-- Execution Logs -->
+            <div class="card" style="flex: 1;">
+                <div class="panel-title">📜 Lịch Sử Thao Tác</div>
+                <div class="step-log" id="step-log">
+                    <div class="step-log-item">Sẵn sàng! Hãy chọn 1 nút để xóa.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BSTNode {
+            constructor(val) {
+                this.val = val;
+                this.left = null;
+                this.right = null;
+                this.x = 0;
+                this.y = 0;
+                this.id = Math.random().toString(36).substr(2, 9);
+            }
+        }
+
+        const presets = [
+            [5, 3, 6, 2, 4, 7],         // 0: LeetCode 450
+            [50, 30, 70, 20, 40, 60, 80], // 1: Root with 2 children
+            [10, 5, 15, 3, 12, 18],     // 2: 1 child test
+            [20, 10, 30, 5, 15],        // 3: Leaf test
+            [10, 20, 30, 40, 50],       // 4: Degenerate tree
+        ];
+
+        let root = null;
+        let selectedNode = null;
+        let selectedCase = null;
+        let targetSuccessorNode = null;
+        let confirmedSuccessor = null;
+        let currentStep = 'SELECT_NODE'; // 'SELECT_NODE', 'SELECT_CASE', 'SELECT_SUCCESSOR', 'READY_EXECUTE'
+        let historyStack = [];
+        let score = 0;
+        let streak = 0;
+
+        function insertBST(node, val) {
+            if (!node) return new BSTNode(val);
+            if (val < node.val) node.left = insertBST(node.left, val);
+            else if (val > node.val) node.right = insertBST(node.right, val);
+            return node;
+        }
+
+        function createTreeFromArray(arr) {
+            let r = null;
+            for (let val of arr) {
+                r = insertBST(r, val);
+            }
+            return r;
+        }
+
+        function loadPreset(index) {
+            document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            if (index === 5) {
+                // Random array
+                let count = 6 + Math.floor(Math.random() * 4);
+                let set = new Set();
+                while (set.size < count) {
+                    set.add(Math.floor(Math.random() * 90) + 10);
+                }
+                root = createTreeFromArray(Array.from(set));
+            } else {
+                root = createTreeFromArray(presets[index]);
+            }
+            resetState();
+            logStep(`Đã tải kịch bản tree mới.`);
+            renderTree();
+        }
+
+        function buildCustomTree() {
+            let valStr = document.getElementById('custom-tree-input').value.trim();
+            if (!valStr) return;
+            let vals = valStr.split(/\s+/).map(Number).filter(n => !isNaN(n));
+            if (vals.length === 0) return;
+            root = createTreeFromArray(vals);
+            resetState();
+            logStep(`Đã tạo cây từ dữ liệu tùy chỉnh.`);
+            renderTree();
+        }
+
+        function resetState() {
+            selectedNode = null;
+            selectedCase = null;
+            targetSuccessorNode = null;
+            confirmedSuccessor = null;
+            currentStep = 'SELECT_NODE';
+            document.getElementById('case-selection-panel').style.display = 'none';
+            document.getElementById('action-panel').style.display = 'none';
+            document.getElementById('guide-box').innerHTML = `Nhấp vào một <strong>Nút bất kỳ trên cây</strong> mà bạn muốn xóa để bắt đầu!`;
+        }
+
+        function resetTree() {
+            loadPreset(0);
+        }
+
+        function logStep(msg) {
+            const logBox = document.getElementById('step-log');
+            const item = document.createElement('div');
+            item.className = 'step-log-item';
+            let timeStr = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            item.innerHTML = `<span class="time">[${timeStr}]</span> ${msg}`;
+            logBox.appendChild(item);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // Layout algorithm to calculate X, Y positions for SVG rendering
+        function calculateLayout(node, depth = 0, xMin = 0, xMax = 1000) {
+            if (!node) return;
+            let mid = (xMin + xMax) / 2;
+            node.x = mid;
+            node.y = 60 + depth * 75;
+
+            calculateLayout(node.left, depth + 1, xMin, mid);
+            calculateLayout(node.right, depth + 1, mid, xMax);
+        }
+
+        function renderTree() {
+            const svg = document.getElementById('tree-svg');
+            svg.innerHTML = '';
+            if (!root) return;
+
+            // Calculate SVG container size and center layout
+            const bbox = svg.getBoundingClientRect();
+            const svgWidth = bbox.width || 800;
+            calculateLayout(root, 0, 40, svgWidth - 40);
+
+            // Collect all edges and nodes
+            let edges = [];
+            let nodes = [];
+
+            function traverse(n) {
+                if (!n) return;
+                nodes.push(n);
+                if (n.left) {
+                    edges.push({ from: n, to: n.left, isSuccessorEdge: false });
+                    traverse(n.left);
+                }
+                if (n.right) {
+                    edges.push({ from: n, to: n.right, isSuccessorEdge: false });
+                    traverse(n.right);
+                }
+            }
+            traverse(root);
+
+            // Draw edges
+            edges.forEach(e => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", e.from.x);
+                line.setAttribute("y1", e.from.y);
+                line.setAttribute("x2", e.to.x);
+                line.setAttribute("y2", e.to.y);
+                line.setAttribute("class", "tree-edge");
+                
+                if (selectedNode && confirmedSuccessor && 
+                   ((e.from === selectedNode && e.to === confirmedSuccessor) || 
+                    (e.from === confirmedSuccessor || e.to === confirmedSuccessor))) {
+                    line.setAttribute("class", "tree-edge successor");
+                }
+                svg.appendChild(line);
+            });
+
+            // Draw nodes
+            nodes.forEach(n => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                let classes = "tree-node";
+                if (selectedNode && selectedNode.val === n.val) classes += " target";
+                if (confirmedSuccessor && confirmedSuccessor.val === n.val) classes += " successor";
+                g.setAttribute("class", classes);
+                g.setAttribute("transform", `translate(${n.x}, ${n.y})`);
+                g.onclick = (evt) => {
+                    evt.stopPropagation();
+                    handleNodeClick(n);
+                };
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("r", "22");
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.textContent = n.val;
+
+                g.appendChild(circle);
+                g.appendChild(text);
+                svg.appendChild(g);
+            });
+        }
+
+        function getChildrenCount(n) {
+            let count = 0;
+            if (n.left) count++;
+            if (n.right) count++;
+            return count;
+        }
+
+        function findMin(n) {
+            while (n.left) n = n.left;
+            return n;
+        }
+
+        function handleNodeClick(node) {
+            if (currentStep === 'SELECT_NODE') {
+                selectedNode = node;
+                currentStep = 'SELECT_CASE';
+                document.getElementById('target-node-val').textContent = node.val;
+                document.getElementById('case-selection-panel').style.display = 'block';
+                document.getElementById('guide-box').innerHTML = `Đã chọn Nút <strong>${node.val}</strong>. Hãy xác định đúng <strong>Trường hợp (Case 1, 2 hay 3)</strong> bên dưới!`;
+                
+                // Clear previous case highlights
+                document.querySelectorAll('.case-box').forEach(b => b.classList.remove('selected'));
+                renderTree();
+                logStep(`Chọn nút target: ${node.val}`);
+            } else if (currentStep === 'SELECT_SUCCESSOR') {
+                if (targetSuccessorNode && node.val === targetSuccessorNode.val) {
+                    confirmedSuccessor = node;
+                    score += 50;
+                    streak++;
+                    updateStats();
+                    confetti({ particleCount: 60, spread: 70, origin: { y: 0.7 } });
+                    document.getElementById('guide-box').innerHTML = `🎉 Chính xác tuyệt đối! Nút <strong>${node.val}</strong> là nút nhỏ nhất ở cây con bên phải của nút ${selectedNode.val}. Sẵn sàng thực hiện xóa!`;
+                    document.getElementById('action-panel').style.display = 'block';
+                    currentStep = 'READY_EXECUTE';
+                    logStep(`Chọn đúng nút thế mạng Successor: ${node.val}`);
+                    renderTree();
+                } else {
+                    streak = 0;
+                    updateStats();
+                    document.getElementById('guide-box').innerHTML = `❌ Chưa chính xác! Nút <strong>${node.val}</strong> không phải là nút nhỏ nhất ở cây con bên phải của nút ${selectedNode.val}.<br><br>💡 <em>Mẹo: Từ nút ${selectedNode.val}, đi sang phải 1 bước, sau đó rẽ trái đến nút cuối cùng!</em>`;
+                    logStep(`Thử sai nút successor: ${node.val}`);
+                }
+            }
+        }
+
+        function selectCase(caseNum) {
+            if (!selectedNode) return;
+            let actualChildren = getChildrenCount(selectedNode);
+            let correctCase = actualChildren === 0 ? 1 : (actualChildren === 1 ? 2 : 3);
+
+            document.querySelectorAll('.case-box').forEach(b => b.classList.remove('selected'));
+            document.getElementById(`case${caseNum}-btn`).classList.add('selected');
+            selectedCase = caseNum;
+
+            if (caseNum === correctCase) {
+                score += 30;
+                streak++;
+                updateStats();
+                logStep(`Xác định đúng Case ${caseNum} cho nút ${selectedNode.val}!`);
+
+                if (caseNum === 3) {
+                    targetSuccessorNode = findMin(selectedNode.right);
+                    confirmedSuccessor = null;
+                    currentStep = 'SELECT_SUCCESSOR';
+                    document.getElementById('guide-box').innerHTML = `✅ Chính xác! Nút <strong>${selectedNode.val}</strong> có 2 con (Case 3).<br><br>👉 <strong>Yêu cầu:</strong> Hãy tự tìm và nhấp vào <strong>Nút nhỏ nhất ở cây con bên phải</strong> của nút ${selectedNode.val} (Nút thế mạng)!`;
+                    document.getElementById('action-panel').style.display = 'none';
+                    renderTree();
+                } else {
+                    currentStep = 'READY_EXECUTE';
+                    document.getElementById('guide-box').innerHTML = `✅ Chính xác! Nhấn nút <strong>Thực hiện Xóa Nút</strong> bên dưới để hoàn tất.`;
+                    document.getElementById('action-panel').style.display = 'block';
+                }
+            } else {
+                streak = 0;
+                updateStats();
+                document.getElementById('guide-box').innerHTML = `❌ Chưa đúng! Nút <strong>${selectedNode.val}</strong> có <strong>${actualChildren} nút con</strong>. Hãy chọn lại Case phù hợp.`;
+                document.getElementById('action-panel').style.display = 'none';
+                logStep(`Xác định sai Case ${caseNum} (Đúng là Case ${correctCase}).`);
+            }
+        }
+
+        function deleteNodeBST(rootNode, key) {
+            if (!rootNode) return null;
+            if (key < rootNode.val) {
+                rootNode.left = deleteNodeBST(rootNode.left, key);
+            } else if (key > rootNode.val) {
+                rootNode.right = deleteNodeBST(rootNode.right, key);
+            } else {
+                // Case 1: Leaf node
+                if (!rootNode.left && !rootNode.right) {
+                    return null;
+                }
+                // Case 2: 1 child
+                if (!rootNode.left) return rootNode.right;
+                if (!rootNode.right) return rootNode.left;
+
+                // Case 3: 2 children
+                let min = findMin(rootNode.right);
+                rootNode.val = min.val;
+                rootNode.right = deleteNodeBST(rootNode.right, min.val);
+            }
+            return rootNode;
+        }
+
+        function executeStep() {
+            if (!selectedNode || !selectedCase) return;
+            
+            // Save state for undo
+            saveHistory();
+
+            let targetVal = selectedNode.val;
+            root = deleteNodeBST(root, targetVal);
+
+            confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 } });
+            logStep(`Thành công xóa nút ${targetVal} khỏi BST!`);
+
+            score += 100;
+            updateStats();
+            resetState();
+            renderTree();
+        }
+
+        function saveHistory() {
+            function copyTree(n) {
+                if (!n) return null;
+                let newNode = new BSTNode(n.val);
+                newNode.left = copyTree(n.left);
+                newNode.right = copyTree(n.right);
+                return newNode;
+            }
+            historyStack.push(copyTree(root));
+        }
+
+        function undoStep() {
+            if (historyStack.length === 0) {
+                logStep("Không còn lịch sử để Undo.");
+                return;
+            }
+            root = historyStack.pop();
+            resetState();
+            logStep("Đã khôi phục lại trạng thái cây trước đó.");
+            renderTree();
+        }
+
+        function updateStats() {
+            document.getElementById('score-val').textContent = score;
+            document.getElementById('streak-val').textContent = streak;
+        }
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            renderTree();
+        });
+
+        // Initialize game
+        loadPreset(0);
+    </script>
+</body>
+</html>
