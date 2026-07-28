@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST In-Order Traversal & Kth Smallest Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #38ef7d;
+            --accent-purple: #8a2be2;
+            --accent-rose: #ff2a6d;
+            --accent-gold: #ffb703;
+            --accent-green: #05df72;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(0, 242, 254, 0.1) 0px, transparent 45%),
+                radial-gradient(at 85% 85%, rgba(138, 43, 226, 0.12) 0px, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 24px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1280px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #00f2fe, #38ef7d);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            box-shadow: 0 4px 18px rgba(0, 242, 254, 0.35);
+            color: #000;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-badge span.val {
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .preset-btn, .btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preset-btn:hover, .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(56, 239, 125, 0.2));
+            border-color: var(--accent-cyan);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 440px;
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            min-height: 440px;
+        }
+
+        .tree-edge {
+            stroke: rgba(255, 255, 255, 0.18);
+            stroke-width: 2.5px;
+            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        .tree-edge.visited {
+            stroke: var(--accent-cyan);
+            stroke-width: 3px;
+        }
+
+        .tree-node {
+            cursor: pointer;
+        }
+
+        .tree-node circle {
+            fill: #1e293b;
+            stroke: #475569;
+            stroke-width: 2.5px;
+            transition: fill 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease;
+        }
+
+        .tree-node:hover circle {
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+            fill: #1e2942;
+        }
+
+        .tree-node text {
+            fill: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        /* Statuses */
+        .tree-node.visiting circle {
+            fill: rgba(0, 242, 254, 0.25);
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node.processed circle {
+            fill: rgba(56, 239, 125, 0.25);
+            stroke: var(--accent-green);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node.target-k circle {
+            fill: rgba(255, 183, 3, 0.3);
+            stroke: var(--accent-gold);
+            stroke-width: 4px;
+        }
+
+        /* Inorder Sequence Display */
+        .sequence-box {
+            margin-top: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sequence-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .sequence-items {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .seq-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-green);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .seq-item.target-k {
+            background: rgba(255, 183, 3, 0.25);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Sidebar Panels */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .guide-banner {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(56, 239, 125, 0.15));
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .guide-banner strong {
+            color: var(--accent-cyan);
+        }
+
+        /* Code trace box */
+        .code-box {
+            background: rgba(10, 15, 26, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .code-line {
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #94a3b8;
+        }
+
+        .code-line.active {
+            background: rgba(0, 242, 254, 0.2);
+            color: var(--accent-cyan);
+            font-weight: 700;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        /* Call Stack Box */
+        .stack-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+            min-height: 80px;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+
+        .stack-item {
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid var(--accent-purple);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .controls-panel {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .custom-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .custom-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            flex: 1;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .step-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(10, 10, 18, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #a7f3d0;
+            line-height: 1.5;
+        }
+
+        .step-log-item {
+            margin-bottom: 4px;
+        }
+
+        .step-log-item span.time {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">k-th</div>
+            <div>
+                <h1>BST In-Order Traversal & Kth Smallest Game</h1>
+                <div class="subtitle">Mô phỏng trực quan thuật toán Duyệt Trung Tự tìm nút nhỏ nhất thứ K</div>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-badge">
+                <span>Mục tiêu K:</span>
+                <span class="val" id="target-k-val">1</span>
+            </div>
+            <div class="stat-badge">
+                <span>Biến count:</span>
+                <span class="val" id="count-val">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main Interactive Canvas -->
+        <div class="card">
+            <div class="preset-bar">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Kịch bản:</span>
+                <button class="preset-btn active" onclick="loadPreset(0)">1. Ex 1 (k=1)</button>
+                <button class="preset-btn" onclick="loadPreset(1)">2. Ex 2 (k=3)</button>
+                <button class="preset-btn" onclick="loadPreset(2)">3. Cây 15 nút (k=7)</button>
+                <button class="preset-btn" onclick="loadPreset(3)">4. Cây Lệch (k=4)</button>
+                <button class="preset-btn" onclick="loadPreset(4)">🎲 Ngẫu nhiên</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <svg id="tree-svg"></svg>
+            </div>
+
+            <!-- In-Order Output Sequence Bar -->
+            <div class="sequence-box">
+                <div class="sequence-title">Dãy nút đã duyệt (In-Order):</div>
+                <div class="sequence-items" id="sequence-items">
+                    <span style="color: var(--text-muted); font-size: 13px;">(Chưa có nút nào)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Control Panel -->
+        <div class="sidebar">
+            <div class="card">
+                <div class="panel-title">🎮 Điều Khiển Mô Phỏng</div>
+                
+                <div class="guide-banner" id="guide-box">
+                    Nhấn <strong>▶ Tiếp Theo</strong> hoặc nhấp nút tương ứng trên cây để duyệt từng bước!
+                </div>
+
+                <!-- Code Trace Lines -->
+                <div class="code-box">
+                    <div class="code-line" id="line-1">1. inorder(root.left, k); // Duyệt Trái</div>
+                    <div class="code-line" id="line-2">2. count++; // Thăm Nút Giữa</div>
+                    <div class="code-line" id="line-3">3. if (count == k) return ans = root.val;</div>
+                    <div class="code-line" id="line-4">4. inorder(root.right, k); // Duyệt Phải</div>
+                </div>
+
+                <div class="panel-title" style="font-size: 13px; margin-top: 4px;">📥 Call Stack (Hàng Đợi Đệ Quy):</div>
+                <div class="stack-box" id="stack-box">
+                    <span style="color: var(--text-muted); font-size: 12px; text-align: center;">Stack Rỗng</span>
+                </div>
+
+                <div class="controls-panel">
+                    <button class="btn" style="flex: 1;" id="next-step-btn" onclick="stepForward()">▶ Tiếp Theo</button>
+                    <button class="btn" onclick="toggleAutoPlay()" id="auto-btn">⚡ Tự Động Play</button>
+                    <button class="btn" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Custom Input Generator -->
+            <div class="card">
+                <div class="panel-title">⚙️ Tự Nhập Cây & K</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Mảng cây (dấu cách):</div>
+                <input type="text" class="custom-input" id="custom-tree-input" value="5 3 6 2 4 1" style="width: 100%; margin-bottom: 8px;">
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Vị trí K:</div>
+                <div class="custom-input-group">
+                    <input type="number" class="custom-input" id="custom-k-input" value="3" min="1">
+                    <button class="btn" onclick="buildCustomTree()">Tạo Cây</button>
+                </div>
+            </div>
+
+            <!-- Execution Logs -->
+            <div class="card" style="flex: 1;">
+                <div class="panel-title">📜 Lịch Sử Thao Tác</div>
+                <div class="step-log" id="step-log">
+                    <div class="step-log-item">Sẵn sàng! Nhấn Tiếp Theo để bắt đầu duyệt In-Order.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BSTNode {
+            constructor(val) {
+                this.val = val;
+                this.left = null;
+                this.right = null;
+                this.x = 0;
+                this.y = 0;
+            }
+        }
+
+        const presets = [
+            { arr: [3, 1, 4, 2], k: 1 },                 // Ex 1
+            { arr: [5, 3, 6, 2, 4, 1], k: 3 },           // Ex 2
+            { arr: [8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15], k: 7 }, // Rich tree
+            { arr: [10, 20, 30, 40, 50], k: 4 },        // Skewed
+        ];
+
+        let root = null;
+        let kTarget = 1;
+        let currentCount = 0;
+        let stepsList = []; // Generated sequence of traversal events
+        let stepIndex = 0;
+        let autoPlayInterval = null;
+        let processedNodes = new Set();
+        let currentVisitingNode = null;
+        let foundResultNode = null;
+
+        function insertBST(node, val) {
+            if (!node) return new BSTNode(val);
+            if (val < node.val) node.left = insertBST(node.left, val);
+            else if (val > node.val) node.right = insertBST(node.right, val);
+            return node;
+        }
+
+        function createTreeFromArray(arr) {
+            let r = null;
+            for (let val of arr) r = insertBST(r, val);
+            return r;
+        }
+
+        // Generate full trace steps for simulation
+        function generateSteps(node, stack = []) {
+            if (!node) return;
+
+            // 1. Go Left
+            stack.push(`inorder(${node.val})`);
+            stepsList.push({
+                type: 'CALL_LEFT',
+                node: node,
+                stack: [...stack],
+                codeLine: 1,
+                desc: `Hàm đệ quy gọi đi sang TRÁI của nút ${node.val}`
+            });
+            generateSteps(node.left, stack);
+
+            // 2. Process Current Node (Middle Step)
+            stepsList.push({
+                type: 'VISIT_MIDDLE',
+                node: node,
+                stack: [...stack],
+                codeLine: 2,
+                desc: `Xử lý NÚT GIỮA ${node.val}: Tăng count!`
+            });
+
+            // 3. Go Right
+            stepsList.push({
+                type: 'CALL_RIGHT',
+                node: node,
+                stack: [...stack],
+                codeLine: 4,
+                desc: `Hàm đệ quy gọi đi sang PHẢI của nút ${node.val}`
+            });
+            generateSteps(node.right, stack);
+
+            stack.pop();
+        }
+
+        function loadPreset(index) {
+            document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            if (index === 4) {
+                let count = 6 + Math.floor(Math.random() * 4);
+                let set = new Set();
+                while (set.size < count) set.add(Math.floor(Math.random() * 90) + 10);
+                let arr = Array.from(set);
+                root = createTreeFromArray(arr);
+                kTarget = Math.floor(Math.random() * (arr.length - 1)) + 1;
+            } else {
+                root = createTreeFromArray(presets[index].arr);
+                kTarget = presets[index].k;
+            }
+            document.getElementById('target-k-val').textContent = kTarget;
+            resetSimulation();
+        }
+
+        function buildCustomTree() {
+            let valStr = document.getElementById('custom-tree-input').value.trim();
+            let kVal = parseInt(document.getElementById('custom-k-input').value) || 1;
+            if (!valStr) return;
+            let vals = valStr.split(/\s+/).map(Number).filter(n => !isNaN(n));
+            if (vals.length === 0) return;
+            root = createTreeFromArray(vals);
+            kTarget = kVal;
+            document.getElementById('target-k-val').textContent = kTarget;
+            resetSimulation();
+            logStep(`Đã tạo cây từ dữ liệu tùy chỉnh với K = ${kTarget}.`);
+        }
+
+        function resetSimulation() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+                document.getElementById('auto-btn').innerHTML = '⚡ Tự Động Play';
+            }
+            stepsList = [];
+            stepIndex = 0;
+            currentCount = 0;
+            processedNodes.clear();
+            currentVisitingNode = null;
+            foundResultNode = null;
+
+            document.getElementById('count-val').textContent = '0';
+            document.getElementById('sequence-items').innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">(Chưa có nút nào)</span>`;
+            document.getElementById('stack-box').innerHTML = `<span style="color: var(--text-muted); font-size: 12px; text-align: center;">Stack Rỗng</span>`;
+            document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active'));
+
+            if (root) {
+                generateSteps(root);
+            }
+            document.getElementById('guide-box').innerHTML = `Sẵn sàng! Nhấn <strong>▶ Tiếp Theo</strong> để bắt đầu mô phỏng từng bước!`;
+            renderTree();
+        }
+
+        function stepForward() {
+            if (stepIndex >= stepsList.length || foundResultNode) {
+                logStep("Đã kết thúc quá trình mô phỏng.");
+                return;
+            }
+
+            let step = stepsList[stepIndex];
+            stepIndex++;
+
+            // Highlight Code Line
+            document.querySelectorAll('.code-line').forEach((l, idx) => {
+                l.classList.toggle('active', idx + 1 === step.codeLine);
+            });
+
+            // Update Call Stack UI
+            const stackBox = document.getElementById('stack-box');
+            stackBox.innerHTML = '';
+            step.stack.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'stack-item';
+                item.innerHTML = `<span>${s}</span>`;
+                stackBox.appendChild(item);
+            });
+
+            currentVisitingNode = step.node;
+
+            if (step.type === 'VISIT_MIDDLE') {
+                currentCount++;
+                document.getElementById('count-val').textContent = currentCount;
+                processedNodes.add(step.node.val);
+
+                // Update Output Sequence Bar
+                const seqItems = document.getElementById('sequence-items');
+                if (currentCount === 1) seqItems.innerHTML = '';
+                
+                const item = document.createElement('div');
+                item.className = `seq-item ${currentCount === kTarget ? 'target-k' : ''}`;
+                item.textContent = step.node.val;
+                seqItems.appendChild(item);
+
+                logStep(`Duyệt nút ${step.node.val} (count = ${currentCount}).`);
+
+                if (currentCount === kTarget) {
+                    foundResultNode = step.node;
+                    confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 } });
+                    document.getElementById('guide-box').innerHTML = `🎉 <strong>CHẠM MỐC K = ${kTarget}!</strong> Nút nhỏ nhất thứ ${kTarget} là <strong>${step.node.val}</strong>.<br><br>👉 Đã kích hoạt <strong>Dừng sớm (Early Exit)</strong>, không cần duyệt tiếp các nút còn lại!`;
+                    logStep(`🎉 Tìm thấy nút nhỏ nhất thứ ${kTarget} là: ${step.node.val}!`);
+                    if (autoPlayInterval) toggleAutoPlay();
+                } else {
+                    document.getElementById('guide-box').innerHTML = `Thăm Nút Giữa <strong>${step.node.val}</strong> $\\rightarrow$ Đã duyệt ${currentCount} nút.`;
+                }
+            } else {
+                document.getElementById('guide-box').innerHTML = step.desc;
+            }
+
+            renderTree();
+        }
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('auto-btn');
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+                btn.innerHTML = '⚡ Tự Động Play';
+            } else {
+                btn.innerHTML = '⏸ Tạm Dừng';
+                autoPlayInterval = setInterval(() => {
+                    if (stepIndex >= stepsList.length || foundResultNode) {
+                        toggleAutoPlay();
+                    } else {
+                        stepForward();
+                    }
+                }, 1000);
+            }
+        }
+
+        function logStep(msg) {
+            const logBox = document.getElementById('step-log');
+            const item = document.createElement('div');
+            item.className = 'step-log-item';
+            let timeStr = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            item.innerHTML = `<span class="time">[${timeStr}]</span> ${msg}`;
+            logBox.appendChild(item);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function calculateLayout(node, depth = 0, xMin = 0, xMax = 1000) {
+            if (!node) return;
+            let mid = (xMin + xMax) / 2;
+            node.x = mid;
+            node.y = 50 + depth * 70;
+            calculateLayout(node.left, depth + 1, xMin, mid);
+            calculateLayout(node.right, depth + 1, mid, xMax);
+        }
+
+        function renderTree() {
+            const svg = document.getElementById('tree-svg');
+            svg.innerHTML = '';
+            if (!root) return;
+
+            const bbox = svg.getBoundingClientRect();
+            const svgWidth = bbox.width || 800;
+            calculateLayout(root, 0, 40, svgWidth - 40);
+
+            let edges = [];
+            let nodes = [];
+
+            function traverse(n) {
+                if (!n) return;
+                nodes.push(n);
+                if (n.left) {
+                    edges.push({ from: n, to: n.left });
+                    traverse(n.left);
+                }
+                if (n.right) {
+                    edges.push({ from: n, to: n.right });
+                    traverse(n.right);
+                }
+            }
+            traverse(root);
+
+            edges.forEach(e => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", e.from.x);
+                line.setAttribute("y1", e.from.y);
+                line.setAttribute("x2", e.to.x);
+                line.setAttribute("y2", e.to.y);
+                line.setAttribute("class", "tree-edge");
+                if (processedNodes.has(e.from.val) && processedNodes.has(e.to.val)) {
+                    line.setAttribute("class", "tree-edge visited");
+                }
+                svg.appendChild(line);
+            });
+
+            nodes.forEach(n => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                let classes = "tree-node";
+                if (foundResultNode && foundResultNode.val === n.val) classes += " target-k";
+                else if (currentVisitingNode && currentVisitingNode.val === n.val) classes += " visiting";
+                else if (processedNodes.has(n.val)) classes += " processed";
+
+                g.setAttribute("class", classes);
+                g.setAttribute("transform", `translate(${n.x}, ${n.y})`);
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("r", "22");
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.textContent = n.val;
+
+                g.appendChild(circle);
+                g.appendChild(text);
+                svg.appendChild(g);
+            });
+        }
+
+        // Initialize
+        loadPreset(1);
+    </script>
+</body>
+</html>
