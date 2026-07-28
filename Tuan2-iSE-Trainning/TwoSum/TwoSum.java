@@ -2,15 +2,6 @@ import java.util.*;
 
 public class TwoSum {
 
-    /**
-     * Thuật toán Two Sum chuẩn CP sử dụng HashMap.
-     * Độ phức tạp thời gian: O(N)
-     * Độ phức tạp bộ nhớ: O(N)
-     * 
-     * @param nums mảng số nguyên
-     * @param target tổng cần tìm
-     * @return mảng 2 phần tử chứa chỉ số (0-based) [index1, index2] hoặc mảng rỗng nếu không tìm thấy.
-     */
     public static int[] twoSum(int[] nums, int target) {
         Map<Integer, Integer> map = new HashMap<>();
         for (int i = 0; i < nums.length; i++) {
