@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriorityQueue & Binary Heap Interactive Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #38ef7d;
+            --accent-purple: #8a2be2;
+            --accent-rose: #ff2a6d;
+            --accent-gold: #ffb703;
+            --accent-green: #05df72;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(0, 242, 254, 0.1) 0px, transparent 45%),
+                radial-gradient(at 85% 85%, rgba(138, 43, 226, 0.12) 0px, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 24px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1280px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #ffb703, #8a2be2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 4px 18px rgba(255, 183, 3, 0.35);
+            color: #000;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-badge span.val {
+            color: var(--accent-gold);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 16px;
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .preset-btn, .btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preset-btn:hover, .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, rgba(255, 183, 3, 0.2), rgba(138, 43, 226, 0.2));
+            border-color: var(--accent-gold);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(255, 183, 3, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #0072ff);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .btn-rose {
+            background: linear-gradient(135deg, var(--accent-rose), #e11d48);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent-gold), #d97706);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 400px;
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        .tree-edge {
+            stroke: rgba(255, 255, 255, 0.18);
+            stroke-width: 2.5px;
+            transition: stroke 0.4s ease, stroke-width 0.4s ease;
+        }
+
+        .tree-edge.active {
+            stroke: var(--accent-gold);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node {
+            cursor: pointer;
+        }
+
+        .tree-node circle {
+            fill: #1e293b;
+            stroke: #475569;
+            stroke-width: 2.5px;
+            transition: fill 0.35s ease, stroke 0.35s ease, stroke-width 0.35s ease;
+        }
+
+        .tree-node:hover circle {
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+            fill: #1e2942;
+        }
+
+        .tree-node text {
+            fill: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 15px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .tree-node.comparing circle {
+            fill: rgba(0, 242, 254, 0.3);
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5px;
+        }
+
+        .tree-node.swapping circle {
+            fill: rgba(255, 42, 109, 0.35);
+            stroke: var(--accent-rose);
+            stroke-width: 4px;
+        }
+
+        .tree-node.new-inserted circle {
+            fill: rgba(255, 183, 3, 0.35);
+            stroke: var(--accent-gold);
+            stroke-width: 4px;
+        }
+
+        /* Array View Box */
+        .array-view-box {
+            margin-top: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px 16px;
+        }
+
+        .array-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .array-cells {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .array-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 46px;
+        }
+
+        .array-val {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            transition: all 0.35s ease;
+        }
+
+        .array-val.active {
+            border-color: var(--accent-gold);
+            background: rgba(255, 183, 3, 0.2);
+            color: var(--accent-gold);
+        }
+
+        .array-val.swapping {
+            border-color: var(--accent-rose);
+            background: rgba(255, 42, 109, 0.25);
+            color: #fff;
+        }
+
+        .array-idx {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Sidebar Panels */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .guide-banner {
+            background: linear-gradient(135deg, rgba(255, 183, 3, 0.15), rgba(138, 43, 226, 0.15));
+            border: 1px solid rgba(255, 183, 3, 0.3);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .guide-banner strong {
+            color: var(--accent-gold);
+        }
+
+        .mode-select-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(138, 43, 226, 0.2));
+            border-color: var(--accent-cyan);
+            color: #fff;
+        }
+
+        .speed-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            background: rgba(10, 15, 26, 0.6);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        select {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .op-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .custom-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .custom-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            flex: 1;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .step-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .theory-card {
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .theory-card strong {
+            color: var(--accent-cyan);
+        }
+
+        .step-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(10, 10, 18, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #a7f3d0;
+            line-height: 1.5;
+        }
+
+        .step-log-item {
+            margin-bottom: 4px;
+        }
+
+        .step-log-item span.time {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">PQ</div>
+            <div>
+                <h1>PriorityQueue & Binary Heap Visualizer Game</h1>
+                <div class="subtitle">Mô phỏng cơ chế Cây Nhị Phân Heap giải thích độ phức tạp O(log N)</div>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-badge">
+                <span>Chế độ:</span>
+                <span class="val" id="heap-mode-label">Min-Heap</span>
+            </div>
+            <div class="stat-badge">
+                <span>Số phần tử:</span>
+                <span class="val" id="heap-size-label">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main Interactive Canvas -->
+        <div class="card">
+            <div class="preset-bar">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Chế độ Heap:</span>
+                <button class="preset-btn active" id="mode-min-btn" onclick="setHeapMode('MIN')">🔽 Min-Heap (Gốc nhỏ nhất)</button>
+                <button class="preset-btn" id="mode-max-btn" onclick="setHeapMode('MAX')">🔼 Max-Heap (Gốc lớn nhất)</button>
+                <button class="btn" style="margin-left: auto;" onclick="resetHeap()">🔄 Reset Heap</button>
+            </div>
+
+            <!-- SVG Tree View -->
+            <div class="canvas-wrapper">
+                <svg id="tree-svg"></svg>
+            </div>
+
+            <!-- Array View Representation -->
+            <div class="array-view-box">
+                <div class="array-title">
+                    <span>Mảng ngầm định lưu trữ Heap (Array Representation):</span>
+                    <span style="font-size: 11px; font-weight: 500;">Parent: (i-1)/2 | Left: 2i+1 | Right: 2i+2</span>
+                </div>
+                <div class="array-cells" id="array-cells">
+                    <span style="color: var(--text-muted); font-size: 13px;">(Heap đang rỗng)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Control Panel -->
+        <div class="sidebar">
+            <div class="card">
+                <div class="panel-title">⚡ Thao Tác & Điều Khiển</div>
+
+                <!-- Chế độ chạy Auto / Thủ Công -->
+                <div class="mode-select-bar">
+                    <div class="mode-tab active" id="tab-auto" onclick="setExecMode('AUTO')">🤖 Tự Động Play</div>
+                    <div class="mode-tab" id="tab-manual" onclick="setExecMode('MANUAL')">🖐️ Thủ Công (Next bước)</div>
+                </div>
+
+                <!-- Tốc độ Animation -->
+                <div class="speed-bar">
+                    <span>Tốc độ Animation:</span>
+                    <select id="speed-select" onchange="changeSpeed()">
+                        <option value="1500" selected>🐌 Chậm (1.5s)</option>
+                        <option value="1000">⏱ Vừa (1.0s)</option>
+                        <option value="500">⚡ Nhanh (0.5s)</option>
+                    </select>
+                </div>
+                
+                <div class="guide-banner" id="guide-box">
+                    Nhập giá trị và bấm <strong>➕ Add</strong> hoặc <strong>💥 Poll</strong> để xem quá trình Heapify!
+                </div>
+
+                <div class="op-box">
+                    <div class="custom-input-group">
+                        <input type="number" class="custom-input" id="add-val-input" placeholder="Giá trị (VD: 5)" value="5">
+                        <button class="btn btn-primary" id="add-btn" onclick="triggerAdd()">➕ Add (O(log N))</button>
+                    </div>
+
+                    <button class="btn btn-rose" id="poll-btn" style="width: 100%;" onclick="triggerPoll()">
+                        💥 Poll / Pull (O(log N)) - Lấy phần tử Ưu tiên
+                    </button>
+                </div>
+
+                <!-- Nút Next Bước (Khi chọn chế độ Thủ công) -->
+                <div class="step-btn-group">
+                    <button class="btn btn-gold" id="next-step-btn" style="flex: 1;" onclick="stepNext()" disabled>
+                        ▶ Bước Tiếp Theo (Next Step)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Theory Breakdown Card -->
+            <div class="card">
+                <div class="panel-title">📚 Cơ Chế Đằng Sau PriorityQueue</div>
+                <div class="theory-card">
+                    • <strong>Cấu trúc dữ liệu:</strong> Cây Nhị Phân Hoàn Chỉnh (Complete Binary Tree).<br>
+                    • <strong>Tính chất Min-Heap:</strong> Nút cha luôn $\le$ các nút con $\rightarrow$ <strong>Phần tử gốc `heap[0]` luôn nhỏ nhất!</strong><br>
+                    • <strong>Thao tác Add (Sift-Up):</strong> Thêm phần tử mới vào cuối mảng, sau đó **bốc lên (swap với cha)** nếu vi phạm tính chất Heap.<br>
+                    • <strong>Thao tác Poll (Sift-Down):</strong> Lấy gốc `heap[0]` ra, đưa phần tử cuối cùng lên gốc, sau đó **chìm xuống (swap với con nhỏ hơn)**.<br>
+                    • <strong>Độ phức tạp $O(\log N)$:</strong> Chiều cao cây $H = \log_2 N$. Số lần swap tối đa đúng bằng chiều cao cây!
+                </div>
+            </div>
+
+            <!-- Execution Logs -->
+            <div class="card" style="flex: 1;">
+                <div class="panel-title">📜 Lịch Sử Thao Tác</div>
+                <div class="step-log" id="step-log">
+                    <div class="step-log-item">Sẵn sàng! Hãy thử thêm phần tử vào PriorityQueue.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let heapMode = 'MIN'; // 'MIN' or 'MAX'
+        let execMode = 'AUTO'; // 'AUTO' or 'MANUAL'
+        let stepDelay = 1500; // default 1.5s
+        let heap = [];
+        let pendingSteps = [];
+        let stepIdx = 0;
+        let autoTimer = null;
+
+        function setHeapMode(mode) {
+            if (pendingSteps.length > 0 && stepIdx < pendingSteps.length) return;
+            heapMode = mode;
+            document.getElementById('mode-min-btn').classList.toggle('active', mode === 'MIN');
+            document.getElementById('mode-max-btn').classList.toggle('active', mode === 'MAX');
+            document.getElementById('heap-mode-label').textContent = mode === 'MIN' ? 'Min-Heap' : 'Max-Heap';
+            resetHeap();
+        }
+
+        function setExecMode(mode) {
+            execMode = mode;
+            document.getElementById('tab-auto').classList.toggle('active', mode === 'AUTO');
+            document.getElementById('tab-manual').classList.toggle('active', mode === 'MANUAL');
+            
+            if (mode === 'AUTO' && pendingSteps.length > 0 && stepIdx < pendingSteps.length) {
+                runAutoLoop();
+            } else if (mode === 'MANUAL') {
+                if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+                updateNextBtnState();
+            }
+        }
+
+        function changeSpeed() {
+            stepDelay = parseInt(document.getElementById('speed-select').value) || 1500;
+        }
+
+        function resetHeap() {
+            if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+            pendingSteps = [];
+            stepIdx = 0;
+            heap = [];
+            let initialValues = heapMode === 'MIN' ? [3, 8, 5, 12, 10, 15] : [50, 40, 30, 20, 10, 15];
+            for (let v of initialValues) heap.push(v);
+            updateHeapSize();
+            updateNextBtnState();
+            logStep(`Reset Heap với các giá trị ban đầu.`);
+            renderUI();
+        }
+
+        function updateHeapSize() {
+            document.getElementById('heap-size-label').textContent = heap.length;
+        }
+
+        function compare(a, b) {
+            return heapMode === 'MIN' ? a < b : a > b;
+        }
+
+        function shouldSwap(childIdx, parentIdx, currentHeap) {
+            return compare(currentHeap[childIdx], currentHeap[parentIdx]);
+        }
+
+        function updateNextBtnState() {
+            const nextBtn = document.getElementById('next-step-btn');
+            const hasMoreSteps = pendingSteps.length > 0 && stepIdx < pendingSteps.length;
+            nextBtn.disabled = !hasMoreSteps || execMode === 'AUTO';
+        }
+
+        // Build Steps Queue for ADD operation
+        function triggerAdd() {
+            if (pendingSteps.length > 0 && stepIdx < pendingSteps.length) return;
+
+            let valInput = document.getElementById('add-val-input');
+            let val = parseInt(valInput.value);
+            if (isNaN(val)) return;
+
+            valInput.value = Math.floor(Math.random() * 90) + 5;
+
+            pendingSteps = [];
+            stepIdx = 0;
+
+            let tempHeap = [...heap];
+            tempHeap.push(val);
+            let cur = tempHeap.length - 1;
+
+            // Step 1: Append
+            pendingSteps.push({
+                heapState: [...tempHeap],
+                h1: cur, h2: -1, type: 'new-inserted',
+                text: `➕ <strong>Thêm phần tử:</strong> Đặt giá trị mới <strong>${val}</strong> vào cuối mảng (lá ngoài cùng [index ${cur}]).`,
+                log: `Thêm ${val} vào cuối mảng [index ${cur}].`
+            });
+
+            // Step 2: Sift Up
+            while (cur > 0) {
+                let parent = Math.floor((cur - 1) / 2);
+                let parentVal = tempHeap[parent];
+                let curVal = tempHeap[cur];
+
+                pendingSteps.push({
+                    heapState: [...tempHeap],
+                    h1: cur, h2: parent, type: 'comparing',
+                    text: `🔍 <strong>So sánh Sift-Up:</strong> Nút mới <strong>${curVal}</strong> [index ${cur}] vs Nút cha <strong>${parentVal}</strong> [index ${parent}].`
+                });
+
+                if (shouldSwap(cur, parent, tempHeap)) {
+                    let temp = tempHeap[cur];
+                    tempHeap[cur] = tempHeap[parent];
+                    tempHeap[parent] = temp;
+
+                    pendingSteps.push({
+                        heapState: [...tempHeap],
+                        h1: cur, h2: parent, type: 'swapping',
+                        text: `🔄 <strong>Swap!</strong> Nút ${curVal} ${heapMode === 'MIN' ? '<' : '>'} ${parentVal} $\\rightarrow$ Đáo vị trí bốc lên trên!`
+                    });
+
+                    cur = parent;
+                } else {
+                    pendingSteps.push({
+                        heapState: [...tempHeap],
+                        h1: cur, h2: -1, type: 'comparing',
+                        text: `✅ <strong>Thỏa mãn Heap:</strong> Nút ${curVal} đã thỏa mãn điều kiện ${heapMode}-Heap với cha.`
+                    });
+                    break;
+                }
+            }
+
+            pendingSteps.push({
+                heapState: [...tempHeap],
+                h1: -1, h2: -1, type: '',
+                text: `🎉 <strong>Hoàn tất Add(${val})!</strong> Cấu trúc ${heapMode}-Heap đã được khôi phục trong O(log N).`,
+                log: `Hoàn tất Add(${val}) trong O(log N).`,
+                isFinish: true
+            });
+
+            startExecution();
+        }
+
+        // Build Steps Queue for POLL operation
+        function triggerPoll() {
+            if (pendingSteps.length > 0 && stepIdx < pendingSteps.length) return;
+            if (heap.length === 0) {
+                logStep("Heap đang rỗng, không thể Poll!");
+                return;
+            }
+
+            pendingSteps = [];
+            stepIdx = 0;
+            let tempHeap = [...heap];
+            let rootVal = tempHeap[0];
+
+            if (tempHeap.length === 1) {
+                tempHeap.pop();
+                pendingSteps.push({
+                    heapState: [],
+                    h1: -1, h2: -1, type: '',
+                    text: `💥 Đã rút phần tử duy nhất <strong>${rootVal}</strong> khỏi Heap!`,
+                    log: `💥 Poll phần tử gốc duy nhất: ${rootVal}`,
+                    isFinish: true
+                });
+                startExecution();
+                return;
+            }
+
+            let lastVal = tempHeap.pop();
+            tempHeap[0] = lastVal;
+
+            // Step 1: Extract root and move last to root
+            pendingSteps.push({
+                heapState: [...tempHeap],
+                h1: 0, h2: -1, type: 'swapping',
+                text: `💥 <strong>Rút phần tử ưu tiên:</strong> Lấy Gốc <strong>${rootVal}</strong> ra. Đưa nút cuối cùng <strong>${lastVal}</strong> lên thay thế vị trí Gốc [index 0]!`,
+                log: `💥 Rút gốc ${rootVal}, đưa ${lastVal} lên gốc.`
+            });
+
+            // Step 2: Sift Down
+            let cur = 0;
+            while (true) {
+                let left = 2 * cur + 1;
+                let right = 2 * cur + 2;
+                let target = cur;
+
+                if (left < tempHeap.length && compare(tempHeap[left], tempHeap[target])) {
+                    target = left;
+                }
+                if (right < tempHeap.length && compare(tempHeap[right], tempHeap[target])) {
+                    target = right;
+                }
+
+                if (target !== cur) {
+                    let curVal = tempHeap[cur];
+                    let targetVal = tempHeap[target];
+
+                    pendingSteps.push({
+                        heapState: [...tempHeap],
+                        h1: cur, h2: target, type: 'comparing',
+                        text: `🔍 <strong>So sánh Sift-Down:</strong> So sánh nút Gốc/Hiện tại <strong>${curVal}</strong> [index ${cur}] với con <strong>${targetVal}</strong> [index ${target}].`
+                    });
+
+                    let temp = tempHeap[cur];
+                    tempHeap[cur] = tempHeap[target];
+                    tempHeap[target] = temp;
+
+                    pendingSteps.push({
+                        heapState: [...tempHeap],
+                        h1: cur, h2: target, type: 'swapping',
+                        text: `🔄 <strong>Swap chìm xuống!</strong> Tráo vị trí nút ${curVal} chìm xuống nút con ${targetVal}.`
+                    });
+
+                    cur = target;
+                } else {
+                    pendingSteps.push({
+                        heapState: [...tempHeap],
+                        h1: cur, h2: -1, type: 'comparing',
+                        text: `✅ <strong>Hoàn tất Sift-Down!</strong> Nút ${tempHeap[cur]} đã chìm đến đúng vị trí thỏa mãn ${heapMode}-Heap.`
+                    });
+                    break;
+                }
+            }
+
+            pendingSteps.push({
+                heapState: [...tempHeap],
+                h1: -1, h2: -1, type: '',
+                text: `🎉 <strong>Hoàn tất Poll()!</strong> Đã trả về phần tử ưu tiên <strong>${rootVal}</strong> trong O(log N).`,
+                log: `Hoàn tất Poll() -> Trả về ${rootVal} trong O(log N).`,
+                isFinish: true
+            });
+
+            startExecution();
+        }
+
+        function startExecution() {
+            updateNextBtnState();
+            if (execMode === 'AUTO') {
+                runAutoLoop();
+            } else {
+                // In manual mode, automatically render the first step
+                stepNext();
+            }
+        }
+
+        function stepNext() {
+            if (stepIdx >= pendingSteps.length) return;
+
+            let step = pendingSteps[stepIdx];
+            stepIdx++;
+
+            heap = [...step.heapState];
+            updateHeapSize();
+            document.getElementById('guide-box').innerHTML = step.text;
+            if (step.log) logStep(step.log);
+
+            if (step.isFinish) {
+                confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+            }
+
+            renderUI(step.h1, step.h2, step.type);
+            updateNextBtnState();
+        }
+
+        function runAutoLoop() {
+            if (autoTimer) clearTimeout(autoTimer);
+
+            function nextTick() {
+                if (stepIdx < pendingSteps.length) {
+                    stepNext();
+                    autoTimer = setTimeout(nextTick, stepDelay);
+                } else {
+                    autoTimer = null;
+                }
+            }
+            nextTick();
+        }
+
+        function logStep(msg) {
+            const logBox = document.getElementById('step-log');
+            const item = document.createElement('div');
+            item.className = 'step-log-item';
+            let timeStr = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            item.innerHTML = `<span class="time">[${timeStr}]</span> ${msg}`;
+            logBox.appendChild(item);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function calculateHeapTreeLayout(svgWidth) {
+            let positions = [];
+            let levels = Math.floor(Math.log2(Math.max(1, heap.length))) + 1;
+
+            for (let i = 0; i < heap.length; i++) {
+                let level = Math.floor(Math.log2(i + 1));
+                let indexInLevel = i - (Math.pow(2, level) - 1);
+                let numNodesInLevel = Math.pow(2, level);
+                
+                let xSegment = svgWidth / (numNodesInLevel + 1);
+                let x = xSegment * (indexInLevel + 1);
+                let y = 50 + level * 70;
+
+                positions.push({ x, y });
+            }
+            return positions;
+        }
+
+        function renderUI(highlightIdx1 = -1, highlightIdx2 = -1, highlightType = 'comparing') {
+            // Render SVG Tree
+            const svg = document.getElementById('tree-svg');
+            svg.innerHTML = '';
+
+            const bbox = svg.getBoundingClientRect();
+            const svgWidth = bbox.width || 800;
+            let pos = calculateHeapTreeLayout(svgWidth);
+
+            // Draw Edges
+            for (let i = 0; i < heap.length; i++) {
+                let left = 2 * i + 1;
+                let right = 2 * i + 2;
+
+                if (left < heap.length) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", pos[i].x);
+                    line.setAttribute("y1", pos[i].y);
+                    line.setAttribute("x2", pos[left].x);
+                    line.setAttribute("y2", pos[left].y);
+                    line.setAttribute("class", "tree-edge");
+                    if ((i === highlightIdx1 && left === highlightIdx2) || (i === highlightIdx2 && left === highlightIdx1)) {
+                        line.setAttribute("class", "tree-edge active");
+                    }
+                    svg.appendChild(line);
+                }
+
+                if (right < heap.length) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", pos[i].x);
+                    line.setAttribute("y1", pos[i].y);
+                    line.setAttribute("x2", pos[right].x);
+                    line.setAttribute("y2", pos[right].y);
+                    line.setAttribute("class", "tree-edge");
+                    if ((i === highlightIdx1 && right === highlightIdx2) || (i === highlightIdx2 && right === highlightIdx1)) {
+                        line.setAttribute("class", "tree-edge active");
+                    }
+                    svg.appendChild(line);
+                }
+            }
+
+            // Draw Nodes
+            for (let i = 0; i < heap.length; i++) {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                let classes = "tree-node";
+                if (i === highlightIdx1 || i === highlightIdx2) {
+                    classes += " " + highlightType;
+                }
+                g.setAttribute("class", classes);
+                g.setAttribute("transform", `translate(${pos[i].x}, ${pos[i].y})`);
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("r", "20");
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.textContent = heap[i];
+
+                g.appendChild(circle);
+                g.appendChild(text);
+                svg.appendChild(g);
+            }
+
+            // Render Array Cells View
+            const arrayCells = document.getElementById('array-cells');
+            arrayCells.innerHTML = '';
+            if (heap.length === 0) {
+                arrayCells.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">(Heap đang rỗng)</span>`;
+                return;
+            }
+
+            for (let i = 0; i < heap.length; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'array-cell';
+                
+                let valClasses = "array-val";
+                if (i === highlightIdx1 || i === highlightIdx2) {
+                    valClasses += " " + (highlightType === 'swapping' ? 'swapping' : 'active');
+                }
+
+                cell.innerHTML = `
+                    <div class="${valClasses}">${heap[i]}</div>
+                    <div class="array-idx">[${i}]</div>
+                `;
+                arrayCells.appendChild(cell);
+            }
+        }
+
+        // Initialize
+        resetHeap();
+    </script>
+</body>
+</html>
